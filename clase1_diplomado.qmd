@@ -1,0 +1,699 @@
+---
+title: "Diplomado: Métodos Estadísticos para el Análisis de Datos"
+subtitle: "Sesión 1 (28 de mayo de 2025)"
+format: html
+author: José Fernando Zea
+---
+
+
+
+# Introducción a los Datos y la Estadística
+
+Las siguientes notas son basadas en el libro Open Intro el cual será uno de los libros guias para este diplomado.
+La estadística puede ser definida como el estudio de **cómo recolectar, analizar y sacar conclusiones de los datos** [pág i]. Los **datos** mismos consisten en observaciones recolectadas de fuentes como notas de campo, encuestas y experimentos [pág i, pág 14]. Estadística es el estudio de cómo recolectar, analizar y sacar conclusiones de los datos [pág 1, pág 2].
+
+## Organización y Descripción de Datos
+
+El primer paso en la mayoría de los análisis estadísticos es la organización y descripción efectiva de los datos [pág 3]. Una forma común y conveniente de organizar los datos es usando una **matriz de datos**, especialmente si se recolectan datos en una hoja de cálculo [pág 4] o una base de datos (Oracle, Posgres, entre otras). En una matriz de datos, cada fila representa un solo **caso** o **unidad observacional**, y cada columna representa una **variable** [pág 4, pág 5]. Por ejemplo, en un conjunto de datos sobre préstamos cada fila podría ser un solo préstamo, y las columnas serían características como el monto del préstamo o la tasa de interés 
+
+## Tipos de Variables
+
+Las variables pueden clasificarse en diferentes tipos [pág 7]:
+
+-   **Variables Numéricas**: Pueden tomar un amplio rango de valores numéricos, y tiene sentido realizar operaciones matemáticas como la suma o el promedio con ellas [pág 7].
+    -   **Variables Numéricas (ordinal) Discretas**: Solo pueden tomar números enteros no negativos, típicamente representando conteos [pág 8]. Por ejemplo, la variable número de migrañas es una variable numérica discreta [pág pág 8].
+    -   **Variables Numéricas Continuas**: Pueden tomar cualquier valor numérico dentro de un rango dado [pág i]. Variables como la tasa de desempleo  son numéricas [pág 7]. Los niveles de contaminación del aire, como monóxido de carbono o material particulado (PM10), son variables numéricas continuas [pág 9, 10].
+-   **Variables Categóricas**: Tienen respuestas que caen en categorías [pág 8]. Los posibles valores se llaman **niveles** de la variable [pág i]. Por ejemplo, una variable que indica el grupo de un experimento (tratamiento o control) es categórica [pág 8]. La variable propiedad de la vivienda es categórica. Las variables categóricas pueden dividirse además en:
+    -   **Nominales (categóricas no ordenadas)**: Las categorías no tienen un orden natural [pág i]. La variable estado de EE.UU. es un ejemplo de variable categórica nominal [pág i]. El grupo de tratamiento o control en un experimento es categórica sin un orden inherente [pág 8].
+    -   **Ordinales (categóricas ordenadas)**: Las categorías tienen un orden significativo [pág i]. La variable nivel educativo mediano con niveles como por debajo de la escuela secundaria, diploma de escuela secundaria, alguna universidad y licenciatura, es categórica ordinal [pág 32, 33, i].
+
+## Relaciones entre Variables
+
+Muchos análisis están motivados por la búsqueda de **relaciones entre variables** [pág i]. Cuando dos variables están relacionadas, se dice que están **asociadas** [pág 11]. Si una variable tiende a aumentar a medida que la otra aumenta, muestran una **asociación positiva** [pág 11]. Si una aumenta a medida que la otra disminuye, muestran una **asociación negativa** [pág 11]. Cuando se intenta comprender si un cambio en una variable podría causar un cambio en otra, podríamos identificar una **variable explicativa** (la causa potencial) y una **variable de respuesta** (el efecto potencial) [pág 12]. Las variables explicativas a veces se denominan variables independientes y las variables de respuesta variables dependientes, aunque el texto prefiere no usar esta terminología para evitar confusiones [pág 9]. **Diagramas de dispersión (Scatterplots)** son una herramienta gráfica utilizada para explorar visualmente la relación entre dos variables numéricas, donde cada punto representa un solo caso [pág 13, 14].
+
+## Recolección de Datos: Estudios Observacionales y Experimentos
+
+La forma en que se recolectan los datos impacta significativamente las conclusiones que pueden extraerse [pág 15]. Hay dos tipos principales de métodos de recolección de datos [pág 16]:
+
+-   **Estudios Observacionales**: Implican la recolección de datos sin interferir directamente en cómo surgen los datos [pág 16]. Los investigadores simplemente observan los datos [pág 16]. Esto puede incluir encuestas, revisión de registros o seguimiento de cohortes [pág 16, 17]. Los estudios observacionales pueden ser **prospectivos**, recolectando información a medida que los eventos se desarrollan (como el Nurses' Health Study), o **retrospectivos**, recolectando datos sobre eventos pasados (como la revisión de registros médicos) [pág 17]. Si bien los estudios observacionales pueden proporcionar evidencia de una asociación natural entre variables, **no pueden por sí solos mostrar una conexión causal** debido a la posibilidad de variables ocultas o de confusión (`confounding variables`) [pág 16, 18]. Una variable de confusión es una variable que está asociada tanto con la variable explicativa como con la variable de respuesta, creando una asociación aparente entre ellas [pág 18].
+-   **Experimentos**: Implican que los investigadores intervienen activamente asignando casos aleatoriamente a diferentes grupos [pág 12]. Generalmente, hay un **grupo de tratamiento** y un **grupo de control** [pág 12, 19, 20]. Los principios clave del diseño experimental incluyen **control**, **aleatorización** y **replicación** [pág 21, 22]. El **control** implica que los investigadores hacen todo lo posible para controlar cualquier otra diferencia entre los grupos asignados [pág 21]. La **aleatorización** es crucial para asignar pacientes a grupos de tratamiento para tener en cuenta variables que no pueden controlarse y evitar sesgos accidentales [pág 22]. La **replicación** se refiere a observar una muestra suficientemente grande en un solo estudio o que un grupo de científicos replique un estudio completo [pág 22]. Un cuarto principio es el **bloqueo**, donde los individuos se agrupan primero según una variable conocida o sospechada que influye en la respuesta, y luego se asignan aleatoriamente casos dentro de cada bloque a los grupos de tratamiento [pág 23]. Esto asegura una representación igual de esta variable en cada grupo de tratamiento [pág 23]. Un **experimento aleatorizado** puede incluir un **placebo** (un tratamiento simulado) en el grupo de control para ayudar a medir el impacto médico real del tratamiento [pág 12, 24, 25]. Los experimentos, a diferencia de los estudios observacionales, **pueden proporcionar evidencia de una conexión causal** [pág 9, 12].
+
+La **asociación no implica causalidad**; la causalidad solo puede inferirse de un experimento aleatorizado [pág 9].
+
+## Principios de Muestreo
+
+Cuando se estudia un grupo grande (**población**), a menudo es poco práctico recolectar datos de cada caso [pág 26]. En su lugar, se toma una **muestra**, que es un subconjunto de la población [pág 26]. Las conclusiones sobre la población se extraen luego basándose en los datos de la muestra [pág 26]. Un **sesgo** se introduce en una muestra si el método de recolección tiende a producir resultados que sistemáticamente difieren del valor poblacional real [pág 27]. Los datos recolectados al azar se llaman **evidencia anecdótica** y deben tratarse con precaución, ya que pueden representar casos extraordinarios en lugar de ser representativos de la población [pág 28].
+
+Para asegurar que una muestra sea representativa de la población y reducir el sesgo [pág 27], las técnicas de **muestreo aleatorio** son cruciales [pág 27]. Existen diferentes técnicas de muestreo aleatorio [pág 29]:
+
+-   **Muestreo Aleatorio Simple**: Es el tipo más básico, donde cada caso en la población tiene la misma probabilidad de ser seleccionado, similar a una rifa [pág 27]. No hay conexión implícita entre los casos seleccionados [pág 27].
+-   **Muestreo Estratificado**: Implica dividir la población en grupos llamados **estratos** (donde los casos dentro de cada estrato son similares con respecto a una característica importante) y luego muestrear aleatoriamente dentro de cada estrato [pág 29]. Esto asegura una representación igual de estos grupos en la muestra [pág i].
+-   **Muestreo por Conglomerados (Cluster sampling)**: Implica dividir la población en muchos grupos llamados **conglomerados** (clusters), muestrear un número fijo de conglomerados seleccionados al azar, e incluir todas las observaciones de los conglomerados seleccionados [pág 29].
+-   **Muestreo Multietápico (Multistage sampling)**: Es similar al muestreo por conglomerados, pero implica tomar una muestra aleatoria *dentro* de los conglomerados seleccionados en lugar de incluir todas las observaciones [pág 30]. El muestreo por conglomerados y multietápico pueden ayudar a reducir los costos de recolección de datos [pág 30].
+
+## Alcance de la Inferencia
+
+El **alcance de la inferencia** se refiere a la medida en que los resultados de un estudio pueden generalizarse a la población y si se pueden establecer conclusiones causales [pág 31-34]. El muestreo aleatorio permite generalizaciones a la población de la que se extrajo la muestra [pág 32, 34], mientras que la asignación aleatoria en un experimento permite conclusiones causales [pág 33, 34].
+
+## Estadísticas de Resumen y Parámetros Poblacionales
+
+Finalmente, las muestras nos permiten calcular **estadísticas de resumen**, que son números únicos que resumen una gran cantidad de datos [pág i]. Estas estadísticas muestrales, como la media muestral ($\bar{x}$) [pág 35] o la proporción muestral ($\hat{p}$) [pág 36], se utilizan para estimar **parámetros poblacionales** desconocidos que describen toda la población [pág 37]. El parámetro poblacional para la media se denota con la letra griega mu ($\mu$) [pág 38].
+
+En general, comprender e interpretar datos usando estadísticas implica una recolección de datos cuidadosa, la organización y descripción de los datos a través de variables y visualizaciones, la síntesis de las características clave con estadísticas y el uso de métodos de inferencia apropiados (introducidos en capítulos posteriores, como el Capítulo 5) para extraer conclusiones fiables sobre las poblaciones basándose en la evidencia de la muestra [i, 4].
+### 1. Frecuencia Absoluta ($n_i$)
+
+La frecuencia absoluta de una categoría o clase $x_i$ es el número de veces que dicha categoría o clase aparece en el conjunto de datos.
+
+*   $n_i$: Frecuencia absoluta de la categoría/clase $x_i$.
+
+La suma de todas las frecuencias absolutas debe ser igual al número total de observaciones $N$:
+$$
+\sum_{i=1}^{k} n_i = N
+$$
+
+## Frecuencia Relativa ($f_i$)
+
+La frecuencia relativa de una categoría o clase $x_i$ es la proporción de veces que dicha categoría o clase aparece en el conjunto de datos. Se calcula dividiendo la frecuencia absoluta $n_i$ por el número total de observaciones $N$.
+
+*   $f_i$: Frecuencia relativa de la categoría/clase $x_i$.
+
+$$
+f_i = \frac{n_i}{N}
+$$
+La suma de todas las frecuencias relativas es igual a 1:
+$$
+\sum_{i=1}^{k} f_i = \sum_{i=1}^{k} \frac{n_i}{N} = \frac{1}{N} \sum_{i=1}^{k} n_i = \frac{N}{N} = 1
+$$
+Para expresar la frecuencia relativa como un porcentaje, se multiplica por 100:
+$$
+f_i (\%) = \frac{n_i}{N} \times 100\%
+$$
+
+## Frecuencia Acumulada ($N_i$)
+
+La frecuencia acumulada hasta una categoría o clase $x_i$ es la suma de las frecuencias absolutas de todas las categorías o clases anteriores o iguales a $x_i$. **Esto implica que las categorías/clases deben tener un orden natural (datos ordinales o cuantitativos agrupados).**
+
+*   $N_i$: Frecuencia acumulada hasta la categoría/clase $x_i$.
+
+$$
+N_i = \sum_{j=1}^{i} n_j = n_1 + n_2 + \dots + n_i
+$$
+También se puede definir recursivamente:
+$N_1 = n_1$
+$N_i = N_{i-1} + n_i$ para $i > 1$.
+
+La frecuencia acumulada de la última categoría/clase ($x_k$) es igual al número total de observaciones $N$:
+$$
+N_k = N
+$$
+
+## Frecuencia Relativa Acumulada ($F_i$)
+
+La frecuencia relativa acumulada hasta una categoría o clase $x_i$ es la suma de las frecuencias relativas de todas las categorías o clases anteriores o iguales a $x_i$. También se puede calcular dividiendo la frecuencia acumulada $N_i$ por el número total de observaciones $N$. **Nuevamente, esto requiere un orden en las categorías/clases.**
+
+*   $F_i$: Frecuencia relativa acumulada hasta la categoría/clase $x_i$.
+
+$$
+F_i = \sum_{j=1}^{i} f_j = f_1 + f_2 + \dots + f_i
+$$
+Alternativamente:
+$$
+F_i = \frac{N_i}{N}
+$$
+También se puede definir recursivamente:
+$F_1 = f_1$
+$F_i = F_{i-1} + f_i$ para $i > 1$.
+
+La frecuencia relativa acumulada de la última categoría/clase ($x_k$) es igual a 1 (o 100%):
+$$
+F_k = 1
+$$
+Para expresarla como porcentaje:
+$$
+F_i (\%) = \left( \sum_{j=1}^{i} f_j \right) \times 100\% = \frac{N_i}{N} \times 100\%
+$$
+
+## Tabla Resumen de Frecuencias
+
+Una tabla de frecuencias típica se vería así:
+
+$$
+\begin{array}{c|c|c|c|c}
+\text{Categoría/Clase} & \text{Frec. Absoluta} & \text{Frec. Relativa} & \text{Frec. Acumulada} & \text{Frec. Rel. Acumulada} \\
+(x_i) & (n_i) & (f_i) & (N_i) & (F_i) \\
+\hline
+x_1 & n_1 & f_1 = n_1/N & N_1 = n_1 & F_1 = f_1 \\
+x_2 & n_2 & f_2 = n_2/N & N_2 = n_1+n_2 & F_2 = f_1+f_2 \\
+\vdots & \vdots & \vdots & \vdots & \vdots \\
+x_i & n_i & f_i = n_i/N & N_i = \sum_{j=1}^{i} n_j & F_i = \sum_{j=1}^{i} f_j \\
+\vdots & \vdots & \vdots & \vdots & \vdots \\
+x_k & n_k & f_k = n_k/N & N_k = N & F_k = 1 \\
+\hline
+\text{Total} & N & 1 (\text{o } 100\%) & - & - \\
+\end{array}
+$$
+
+**Nota:** Para datos puramente nominales (sin orden inherente), las frecuencias acumuladas (absoluta y relativa) no suelen tener una interpretación útil y a menudo se omiten.
+
+
+
+```{r, echo=FALSE}
+reticulate::py_require("pandas")
+reticulate::py_require("scipy")
+reticulate:::py_require("matplotlib")
+```
+
+
+# Instalación 
+Bienvenido/a al Diplomado: Métodos Estadísticos para el Análisis de Datos. Antes de sumergirnos en los conceptos estadísticos y el análisis de datos, es fundamental que tengas configurado tu entorno de desarrollo. Este capítulo te guiará a través de la instalación del software necesario que utilizaremos a lo largo del curso. Principalmente, nos enfocaremos en:
+
+-   **Python** a través de la distribución **Anaconda**.
+-   El lenguaje de programación estadística **R**.
+-   El Entorno de Desarrollo Integrado (IDE) **RStudio**.
+-   Mencionaremos **Positron** (Visual Studio Code con extensiones para R y Quarto) como una alternativa moderna y potente.
+
+Tener estas herramientas instaladas correctamente te permitirá seguir los ejemplos, realizar los ejercicios y desarrollar tus propios proyectos de análisis de datos.
+
+# Python con Anaconda
+
+**Anaconda** es una distribución gratuita y de código abierto de los lenguajes Python y R para computación científica (ciencia de datos, aprendizaje automático, procesamiento de datos a gran escala, análisis predictivo, etc.). Simplifica la gestión de paquetes y entornos.
+
+## ¿Por qué Anaconda?
+
+-   **Gestor de Paquetes (Conda)**: Facilita la instalación, actualización y gestión de librerías (paquetes) y sus dependencias.
+-   **Entornos Virtuales**: Permite crear entornos aislados para diferentes proyectos, evitando conflictos entre versiones de paquetes.
+-   **Preinstalación de Librerías Científicas**: Viene con muchas librerías populares para ciencia de datos preinstaladas (NumPy, Pandas, Matplotlib, Scikit-learn, Jupyter Notebook, etc.).
+
+## Pasos para la Instalación de Anaconda
+
+1.  **Descargar el Instalador**:
+    -   Ve al sitio web oficial de Anaconda: [https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution).
+    -   Descarga el instalador gráfico correspondiente a tu sistema operativo (Windows, macOS o Linux). Se recomienda descargar la versión más reciente de Python 3.x.
+
+2.  **Ejecutar el Instalador**:
+    -   **Windows**: Haz doble clic en el archivo `.exe` descargado. Sigue las instrucciones del asistente.
+        -   Se recomienda instalar para "Just Me" (Solo yo) a menos que necesites una instalación para todos los usuarios.
+        -   **Importante**: Durante la instalación, es posible que se te pregunte si deseas "Add Anaconda to my PATH environment variable" (Añadir Anaconda a mi variable de entorno PATH). **Generalmente NO se recomienda marcar esta opción** si eres un usuario nuevo, ya que puede interferir con otras instalaciones de Python. Anaconda Prompt (o Anaconda Navigator) te dará acceso a los entornos de conda sin necesidad de esto. Si eres un usuario avanzado y sabes lo que haces, puedes considerarlo.
+        -   Marca la opción "Register Anaconda as my default Python" (Registrar Anaconda como mi Python por defecto) si no tienes otra instalación de Python que quieras priorizar.
+    -   **macOS**: Haz doble clic en el archivo `.pkg` descargado. Sigue las instrucciones del asistente. Acepta los acuerdos de licencia y selecciona el destino de la instalación.
+    -   **Linux**: Abre una terminal, navega al directorio donde descargaste el archivo `.sh` y ejecútalo con el comando:
+        ```bash
+        bash Anaconda3-<version>-Linux-x86_64.sh
+        ```
+        (Reemplaza `<version>` con la versión específica que descargaste).
+        Sigue las instrucciones en la terminal. Acepta el acuerdo de licencia. Cuando te pregunte si deseas inicializar Anaconda3 ejecutando `conda init`, se recomienda responder `yes`.
+
+3.  **Verificar la Instalación**:
+    -   Después de la instalación, cierra y vuelve a abrir tu terminal (o Anaconda Prompt en Windows).
+    -   Escribe el comando:
+        ```bash
+        conda --version
+        ```
+        Deberías ver la versión de conda instalada.
+    -   También puedes verificar la versión de Python:
+        ```bash
+        python --version
+        ```
+
+## Uso Básico de Conda (Opcional para Empezar)
+
+-   Para crear un nuevo entorno llamado `mi_entorno` con Python 3.9 (o la versión que prefieras):
+    ```bash
+    conda create --name mi_entorno python=3.9
+    ```
+-   Para activar el entorno:
+    ```bash
+    conda activate mi_entorno
+    ```
+-   Para instalar un paquete (por ejemplo, `seaborn`) en el entorno activo:
+    ```bash
+    conda install seaborn
+    ```
+-   Para desactivar el entorno:
+    ```bash
+    conda deactivate
+    ```
+Para este curso, trabajar en el entorno `base` de Anaconda será suficiente inicialmente, pero aprender a usar entornos es una buena práctica para proyectos más complejos.
+
+# Instalación de R
+
+**R** es un lenguaje de programación y un entorno de software libre para computación estadística y gráficos. Es ampliamente utilizado por estadísticos y mineros de datos para desarrollar software estadístico y análisis de datos.
+
+## Pasos para la Instalación de R
+
+1.  **Descargar R**:
+    -   Ve al sitio web oficial de CRAN (Comprehensive R Archive Network): [https://cran.r-project.org/](https://cran.r-project.org/).
+    -   En la sección "Download and Install R", haz clic en el enlace correspondiente a tu sistema operativo:
+        -   Download R for Linux
+        -   Download R for macOS
+        -   Download R for Windows
+    -   Sigue las instrucciones específicas de tu SO:
+        -   **Windows**: Haz clic en "base", luego en "Download R-X.Y.Z for Windows" (donde X.Y.Z es la última versión).
+        -   **macOS**: Descarga el archivo `.pkg` más reciente para tu versión de macOS (asegúrate de elegir la correcta para tu arquitectura de procesador, Intel o Apple Silicon/ARM).
+        -   **Linux**: Sigue las instrucciones para tu distribución específica (Debian, Ubuntu, Fedora, etc.). Generalmente implica añadir un repositorio de CRAN y usar el gestor de paquetes de tu sistema (ej. `sudo apt-get install r-base`).
+
+2.  **Ejecutar el Instalador**:
+    -   **Windows**: Haz doble clic en el archivo `.exe` descargado y sigue las instrucciones del asistente. Acepta la configuración por defecto a menos que tengas una razón específica para cambiarla.
+    -   **macOS**: Haz doble clic en el archivo `.pkg` y sigue las instrucciones.
+
+3.  **Verificar la Instalación (Opcional)**:
+    -   Puedes abrir la consola de R que se instala (RGui en Windows, o simplemente escribir `R` en la terminal en macOS/Linux) y verás el mensaje de bienvenida con la versión.
+
+**Nota**: La instalación de R solo proporciona el motor del lenguaje y una interfaz de consola básica. Para una experiencia de desarrollo mucho más amigable y productiva, instalaremos RStudio.
+
+# Instalación de RStudio IDE
+
+**RStudio** es un Entorno de Desarrollo Integrado (IDE) para R, desarrollado por Posit. Proporciona una interfaz gráfica más completa y herramientas que facilitan la programación en R, la visualización de datos, la depuración y la gestión de proyectos.
+
+## Pasos para la Instalación de RStudio Desktop
+
+1.  **Descargar RStudio Desktop**:
+    -   Ve al sitio web oficial de Posit: [https://posit.co/download/rstudio-desktop/](https://posit.co/download/rstudio-desktop/).
+    -   El sitio web debería detectar tu sistema operativo y sugerir la versión adecuada. Descarga el instalador gratuito "RStudio Desktop".
+
+2.  **Ejecutar el Instalador**:
+    -   **Windows**: Haz doble clic en el archivo `.exe` descargado y sigue las instrucciones del asistente.
+    -   **macOS**: Haz doble clic en el archivo `.dmg` descargado, y luego arrastra el icono de RStudio a tu carpeta de Aplicaciones.
+    -   **Linux**: Descarga el archivo `.deb` (para Debian/Ubuntu) o `.rpm` (para Fedora/RHEL/openSUSE) e instálalo usando el gestor de paquetes de tu sistema. Por ejemplo, para un archivo `.deb`:
+        ```bash
+        sudo dpkg -i rstudio-<version>-amd64.deb
+        # Si hay problemas de dependencias, ejecuta:
+        sudo apt-get install -f
+        ```
+        (Reemplaza `<version>` con la versión específica que descargaste).
+
+3.  **Abrir RStudio**:
+    -   Una vez instalado, busca RStudio en tus aplicaciones y ábrelo.
+    -   RStudio debería detectar automáticamente tu instalación de R. Si por alguna razón no lo hace, puedes configurarlo manualmente en las opciones globales de RStudio (Tools > Global Options > General > R version).
+
+# Alternativa: Positron (VS Code con Extensiones de R y Quarto)
+
+Para aquellos que prefieren un editor de código más generalista o ya utilizan **Visual Studio Code (VS Code)**, Positron ofrece una experiencia excelente para trabajar con R, Python y Quarto. Positron es esencialmente VS Code con un conjunto de extensiones y configuraciones optimizadas por Posit.
+
+## Pasos para Configurar VS Code para R (Positron)
+
+1.  **Instalar Visual Studio Code**:
+    -   Si aún no lo tienes, descarga VS Code desde [https://code.visualstudio.com/](https://code.visualstudio.com/) e instálalo.
+2.  **Instalar Extensiones Clave**:
+    -   Abre VS Code.
+    -   Ve a la vista de Extensiones (el icono de cuadrados en la barra lateral izquierda, o presiona `Ctrl+Shift+X`).
+    -   Busca e instala las siguientes extensiones:
+        -   **R** (de REditorSupport o la extensión oficial "R" de Posit). Esta extensión proporciona resaltado de sintaxis, completado de código, integración con la terminal de R, un visor de datos y gráficos, etc.
+        -   **Python** (de Microsoft): Para soporte completo de Python si también lo usarás en VS Code.
+        -   **Quarto** (de Posit): Para trabajar con documentos Quarto, que permiten combinar R, Python, Markdown, LaTeX, y más, para crear documentos dinámicos y reproducibles.
+3.  **Configurar la Extensión de R (si es necesario)**:
+    -   Normalmente, la extensión de R detecta tu instalación de R automáticamente. Si no, puede que necesites especificar la ruta a tu ejecutable de R en los ajustes de la extensión (Archivo > Preferencias > Configuración, luego busca "R path" o ajustes relacionados con R).
+
+VS Code con estas extensiones ofrece un entorno muy flexible y potente, especialmente si trabajas con múltiples lenguajes o prefieres un editor altamente personalizable.
+
+# Resumen y Siguientes Pasos
+
+Con Anaconda (para Python), R y RStudio (o VS Code con las extensiones adecuadas) instalados, tienes las herramientas fundamentales para este curso. En las próximas sesiones, comenzaremos a utilizar R y Python para explorar datos, realizar cálculos estadísticos y crear visualizaciones.
+
+Si encuentras algún problema durante la instalación, no dudes en:
+
+-   Consultar la documentación oficial de cada software.
+-   Buscar soluciones en foros como Stack Overflow, comunidades de R/Python.
+-   Preguntar en los canales de comunicación del curso.
+
+# Práctica computacional
+
+Realizamos el cargue de los paquetes:
+
+::: {.panel-tabset}
+# R
+```{r cargar_librerias R, warning = FALSE, message = FALSE}
+library(dplyr)
+library(readr)
+library(janitor)
+library(sjPlot)
+```
+
+# Python
+```{python cargar_librerias Python, warning = FALSE, message = FALSE}
+import os
+import pandas as pd
+```
+
+:::
+
+Expliquemos como se lee un sólo archivo, en este caso un sólo mes de la GEIH:
+
+
+::: {.panel-tabset}
+# R
+```{r, lectura 1 mes R, warning=TRUE, message=FALSE}
+datos_ene <- read_csv2("Datos del hogar y la vivienda_ene.CSV")
+```
+
+# Python
+
+```{python, lectura 1 mes Python}
+import pandas as pd
+df_ene = pd.read_csv("Datos del hogar y la vivienda_ene.CSV", sep=';', decimal=',', encoding='latin1')
+```
+:::
+
+## Lectura de datos
+
+Vamos a leer masivamente la encuesta de hogares, filtrar Bogotá y seleccioanr variables relevantes
+
+::: {.panel-tabset}
+# R 
+
+```{r, lectura GEIH 2024 R, message=FALSE, warning=FALSE}
+# Definir los nombres de los meses para construir los nombres de archivo
+meses_abreviados <- c("ene", "feb", "mar", "abr", "may", "jun", 
+                      "jul", "ago", "sep", "oct", "nov", "dic")
+
+# Crear una lista para almacenar los dataframes de cada mes
+lista_dataframes_mes <- list()
+
+# Bucle para leer cada archivo
+for (mes_actual in meses_abreviados) {
+  nombre_archivo <- paste0("Datos del hogar y la vivienda_", mes_actual, ".CSV")
+  cat("Leyendo archivo:", nombre_archivo, "\n") # Para ver el progreso
+  
+  # Intentar leer el archivo. `tryCatch` es para manejar si algún archivo falta.
+  datos_mes <- tryCatch({
+    read_delim(nombre_archivo, delim = ";") # Usar read_csv2 si el separador es ; y decimal es ,
+  }, error = function(e) {
+    warning(paste("No se pudo leer el archivo:", nombre_archivo, "-", e$message))
+    return(NULL) # Retorna NULL si hay un error
+  })
+  
+  # Si el dataframe se leyó correctamente, añadirlo a la lista
+  if (!is.null(datos_mes)) {
+    lista_dataframes_mes[[mes_actual]] <- datos_mes
+  }
+}
+
+lista_dataframes_mes$oct$MES <- as.character(lista_dataframes_mes$oct$MES)
+lista_dataframes_mes$nov$MES <- as.character(lista_dataframes_mes$nov$MES)
+lista_dataframes_mes$dic$MES <- as.character(lista_dataframes_mes$dic$MES)
+
+# Unir todos los dataframes de la lista
+# bind_rows es robusto y manejará columnas que no estén en todos los dfs (llenando con NA)
+datos_R <- bind_rows(lista_dataframes_mes, .id = "fuente_mes")
+# .id = "fuente_mes" añadirá una columna indicando de qué archivo (mes) vino cada fila.
+
+datos_bogota <- datos_R %>% filter(DPTO == "11") %>%
+   select(fuente_mes,  DIRECTORIO,   SECUENCIA_P, CLASE,
+    DPTO, P4030S1A1,
+    P4000, P5000, P5010, P5090, P5100, P5110, P5130,
+    P5140,  P6008, FEX_C18) %>%
+  rename(estrato = P4030S1A1, tipo_vivienda = P4000, cuartos = P5000, dormitorios = P5010,
+    tenencia = P5090, cuota = P5100, valor_venderia = P5110,
+    estima_arriendo = P5130, arriendo = P5140, total_personas_hogar = P6008
+  ) %>% mutate(FEX_C18 = FEX_C18  / 12)
+```
+# Python 
+```{python, lectura GEIH 2024 Python, message=FALSE, warning=FALSE}
+```
+
+
+```{python, lectura GEIH 2024 Python, message=FALSE, warning=FALSE}
+# Nombres abreviados de los meses (clave para construir nombres de archivo)
+meses_abreviados_py = ["ene", "feb", "mar", "abr", "may", "jun",
+                       "jul", "ago", "sep", "oct", "nov", "dic"]
+
+# Diccionario para almacenar los DataFrames mensuales
+dict_dataframes_mes_py = {}
+
+# Leer archivos mensuales
+for mes in meses_abreviados_py:
+    nombre_archivo = f"Datos del hogar y la vivienda_{mes}.CSV"
+    print(f"Intentando leer archivo: {nombre_archivo}")
+
+    if os.path.exists(nombre_archivo):
+        try:
+            df_mes = pd.read_csv(nombre_archivo, sep=';', decimal=',',  encoding='latin1')
+            dict_dataframes_mes_py[mes] = df_mes
+            print(f"Archivo {nombre_archivo} leído correctamente.")
+        except Exception as e:
+            print(f"Advertencia: No se pudo leer el archivo {nombre_archivo} - {e}")
+    else:
+        print(f"Advertencia: El archivo {nombre_archivo} no fue encontrado.")
+
+# Agregar columna de origen y unir todos los DataFrames leídos
+lista_para_concatenar = [
+    df.assign(fuente_mes=mes) for mes, df in dict_dataframes_mes_py.items()
+]
+
+# Concatenar en un solo DataFrame si hay datos válidos
+if lista_para_concatenar:
+    datos = pd.concat(lista_para_concatenar, ignore_index=True)
+    print(f"{len(lista_para_concatenar)} archivos fueron unidos en un solo DataFrame.")
+else:
+    print("No se encontraron archivos válidos para unir.")
+
+datos_bogota = datos[datos["DPTO"] == 11].copy()  # Use .copy() to avoid SettingWithCopyWarning
+datos_bogota["FEX_C18"] = pd.to_numeric(datos_bogota["FEX_C18"], errors="coerce")
+
+datos_bogota["FEX_C18"] = datos_bogota["FEX_C18"] / 12
+
+
+# Mantener solo las columnas necesarias
+datos_bogota = datos_bogota[[ "fuente_mes", "DIRECTORIO", "SECUENCIA_P",
+    "CLASE",  "DPTO", "P4030S1A1", "P4000", "P5000", "P5010",  "P5090",
+    "P5100",  "P5110", "P5130", "P5140",  "P6008", "FEX_C18"]]
+
+# Renombrar columnas
+datos_bogota = datos_bogota.rename(columns={"P4030S1A1": "estrato",
+    "P4000": "tipo_vivienda", "P5000": "cuartos",   "P5010": "dormitorios",
+    "P5090": "tenencia", "P5100": "cuota",   "P5110": "valor_venderia",
+    "P5130": "estima_arriendo", "P5140": "arriendo",   "P6008": "total_personas_hogar"})
+
+```
+:::
+
+## Cálculo de tablas de frecuencias univariadas
+
+En primer lugar creamos variables categóricas (etiquetas) a las variables de interés para poder entender más fácil las variables de tipo categórico:
+
+
+::: {.panel-tabset}
+# R
+```{r, etiquetas R}
+library(dplyr)
+datos_bogota$tenencia <- factor(datos_bogota$tenencia,
+                             labels = c("Propia, totalmente pagada", "Propia, la están pagando",
+"En arriendo o subarriendo", "En usufructo", "Posesión sin título", "Propiedad colectiva", "Otra"))
+
+datos_bogota$estrato <- factor(datos_bogota$estrato,
+                             labels = c("Conexión pirata", paste0("Estrato ", 1:6), 
+                                        "No sabe o cuenta con planta eléctrica"))
+
+```
+
+# Python
+```{python, etiquetas python}
+labels_tenencia = ["Propia, totalmente pagada",    "Propia, la están pagando",
+    "En arriendo o subarriendo",  "En usufructo", "Posesión sin título",
+    "Propiedad colectiva",  "Otra"]
+
+# 2. Convert `P5090` to a categorical variable with labels
+datos_bogota["tenencia"] = pd.Categorical(
+    datos_bogota["tenencia"], categories=range(1, 8),  ordered=False)
+datos_bogota["tenencia"] = datos_bogota["tenencia"].cat.rename_categories(labels_tenencia)
+
+
+labels_estrato = ["Conexión pirata"] + [f"Estrato {i}" for i in range(1, 7)] + ["No sabe o cuenta con planta eléctrica"]
+datos_bogota["estrato"] = pd.Categorical(
+    datos_bogota["estrato"], categories=list(range(0, 7)) + [9], ordered=False)
+datos_bogota["estrato"] = datos_bogota["estrato"].cat.rename_categories(labels_estrato)
+
+
+
+```
+
+:::
+
+## Construir la tablas de frecuencias univariadas
+
+Vamos a crear una tabla de frecuencia de la tenencia de vivienda, puede calcularse con R y python de manera rápida
+
+
+::: {.panel-tabset}
+
+# R
+
+```{r, tabla de frecuencias R}
+table(datos_bogota$tenencia)
+```
+
+```{r, tabla de frecuencias relativa R}
+prop.table(table(datos_bogota$tenencia)) * 100
+```
+
+
+Pero podemos calcular una tabla más estructurada:
+
+
+```{r, tabla freq elaborada R}
+tablaFrec_tenencia <- datos_bogota %>% group_by(tenencia) %>% summarise(cuenta = n()) %>% 
+  arrange(desc(cuenta)) %>% mutate(frec_relativa = round(cuenta / sum(cuenta) * 100, 1), 
+  frec_relativaAcum = cumsum(frec_relativa))
+```
+
+Ejercicio hacerlo para el estrato socioeconómico.
+
+
+# Python
+
+```{python, tabla de frec python}
+datos_bogota['tenencia'].value_counts()
+```
+
+
+```{python, tabla de frec relativa python}
+# Frecuencia relativa en porcentaje (equivalente a prop.table(table(datos$x)) * 100)
+datos_bogota['tenencia'].value_counts(normalize=True) * 100
+```
+Lo haremos más estructurado
+
+```{python, tabla de frec elaborada python }
+tablaFrec_tenencia = (
+    datos_bogota
+    .groupby("tenencia")
+    .size()  # counts per group
+    .reset_index(name="cuenta")
+    .sort_values("cuenta", ascending=False)
+)
+
+tablaFrec_tenencia["frec_relativa"] = (
+    round(tablaFrec_tenencia["cuenta"] / tablaFrec_tenencia["cuenta"].sum() * 100, 1)
+)
+tablaFrec_tenencia["frec_relativaAcum"] = tablaFrec_tenencia["frec_relativa"].cumsum()
+```
+
+:::
+
+
+## Perfiles filas y columna
+
+
+Aquí explicamos cómo se calculan los perfiles fila y columna.
+
+### Tabla de Contingencia Base
+
+Sea una tabla de contingencia para dos variables categóricas, $X$ (con $I$ categorías) e $Y$ (con $J$ categorías).
+Denotamos $n_{ij}$ como la frecuencia observada.
+
+$$
+\begin{array}{c|cccc|c}
+ & Y_1 & Y_2 & \dots & Y_J & \text{Total Fila} \\
+\hline
+X_1 & n_{11} & n_{12} & \dots & n_{1J} & n_{1.} \\
+X_2 & n_{21} & n_{22} & \dots & n_{2J} & n_{2.} \\
+\vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+X_I & n_{I1} & n_{I2} & \dots & n_{IJ} & n_{I.} \\
+\hline
+\text{Total Columna} & n_{.1} & n_{.2} & \dots & n_{.J} & N \\
+\end{array}
+$$
+
+### Perfil Fila
+
+El perfil fila para la celda $(i,j)$ es:
+$$
+\text{Perfil Fila (\%)}_{ij} = \left( \frac{n_{ij}}{n_{i.}} \right) \times 100\%
+$$
+donde $n_{i.} = \sum_{k=1}^{J} n_{ik}$ es el total de la fila $i$.
+
+### Perfil Columna
+
+El perfil columna para la celda $(i,j)$ es:
+$$
+\text{Perfil Columna (\%)}_{ij} = \left( \frac{n_{ij}}{n_{.j}} \right) \times 100\%
+$$
+donde $n_{.j} = \sum_{k=1}^{I} n_{kj}$ es el total de la columna $j$.
+
+
+Queremos analizar la tenencia de vivienda por estrato:
+
+::: {.panel-tabset}
+
+# R
+```{r, tabla frec bivariada  R}
+tf_tenenciaEstrato <- table(datos_bogota$estrato, datos_bogota$tenencia)
+```
+
+Es interesante analizar el perfil fila, es decir de cada estrato cuantas hogares tienen vivienda propia en arriendo, etc, el perfil fila:
+
+```{r, perfil fila  R}
+pf_tenenciaEstrato <- round(prop.table(table(datos_bogota$estrato, datos_bogota$tenencia), 1) * 100, 1)
+tf_tenenciaEstrato
+```
+
+# Python
+```{python, perfil fila python}
+pf_tenenciaEstrato = pd.crosstab(
+    datos_bogota["estrato"],  datos_bogota["tenencia"],
+    normalize='index') * 100  # Redondea primero para evitar errores de punto flotante
+
+pf_tenenciaEstrato = pf_tenenciaEstrato.round(1)  # Redondeo final como en R
+
+```
+:::
+
+
+::: {.panel-tabset}
+
+También interesante entender desde la perespectiva de una inmobiliaria la composición de los estratos por tenencia de la vivienda (perfil columna):
+
+# R
+```{r, perfil columna R}
+pc_tenenciaEstrato <- round(prop.table(table(datos_bogota$estrato, datos_bogota$tenencia), 2) * 100, 1)
+tf_tenenciaEstrato
+```
+
+# Python
+```{python, perfil columna python}
+pc_tenenciaEstrato = pd.crosstab(
+    datos_bogota["estrato"],  datos_bogota["tenencia"],
+    normalize='columns') * 100  # Redondea primero para evitar errores de punto flotante
+
+pc_tenenciaEstrato = pc_tenenciaEstrato.round(1)   # Redondeo final como en R
+
+```
+
+:::
+
+
+Ahora algunas opciones más sofisticadas en R:
+
+::: {.panel-tabset}
+
+# R
+```{r, perfiles mas sofisticado R}
+datos_bogota %>%
+  tabyl(estrato, tenencia) %>%
+  adorn_totals("row") %>%
+  adorn_totals("col") %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns(position = "front")
+```
+
+
+
+```{r, perfiles sjPlot R}
+tab_xtab(datos_bogota$estrato, datos_bogota$tenencia,
+         show.row.prc = TRUE,     # % por fila
+         show.col.prc = TRUE,     # % por columna
+         show.cell.prc = TRUE,    # % respecto al total general
+         show.summary = TRUE, encoding = "UTF-8")     # totales fila y columna
+
+
+```
+
+
+:::
+
+
+
+# Referencias
+
+- Diez, D. M., Barr, C. D., & Çetinkaya-Rundel, M. (2019). *OpenIntro Statistics* (4th ed.). OpenIntro, Inc. Recuperado de [https://www.openintro.org/book/os/](https://www.openintro.org/book/os/)
+- Bruce, P., Bruce, A., & Gedeck, P. (2020). Practical Statistics for Data Scientists: 50+ Essential Concepts Using R and Python (2nd ed.). O'Reilly Media.

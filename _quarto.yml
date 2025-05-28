@@ -1,0 +1,53 @@
+project:
+  type: website
+  output-dir: _site # Importante: aquí se generará el sitio completo
+
+website:
+  title: "Diplomado: Métodos Estadísticos" # Título general del sitio
+  navbar:
+    left:
+      - href: index.qmd  # Página principal del curso
+        text: Inicio
+      - text: "Clases"
+        menu:
+          - href: project:
+  type: website
+  output-dir: _site # Importante: aquí se generará el sitio completo
+
+website:
+  title: "Diplomado: Métodos Estadísticos" # Título general del sitio
+  navbar:
+    left:
+      - href: index.qmd  # Página principal del curso
+        text: Inicio
+      - text: "Clases"
+        menu:
+          - href: clase1_diplomado.qmd
+            text: "Clase 1: Introducción y Frecuencias"
+          
+          # ... más clases aquí
+      # - href: sobre_el_curso.qmd # Opcional: una página "Acerca de"
+      #   text: Acerca de
+  page-footer: "Material del Diplomado por José Fernando Zea" # Opcional
+
+format:
+  html:
+    theme: cosmo # O el tema que prefieras
+    toc: true
+    toc-depth: 2
+    # self-contained: false # Para proyectos, es mejor no auto-contenido
+            text: "Clase 1: Introducción y Frecuencias"
+          #- href: clase2.qmd # Añadirás esto después
+            #text: "Clase 2: (Tema de la clase 2)"
+          # ... más clases aquí
+      # - href: sobre_el_curso.qmd # Opcional: una página "Acerca de"
+      #   text: Acerca de
+  page-footer: "Material del Diplomado por José Fernando Zea" # Opcional
+
+format:
+  html:
+    theme: cosmo # O el tema que prefieras
+    toc: true
+    toc-depth: 2
+    # self-contained: false # Para proyectos, es mejor no auto-contenido
+

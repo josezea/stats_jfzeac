@@ -1,0 +1,15 @@
+---
+title: "Bienvenido al Diplomado de Métodos Estadísticos"
+---
+
+## Sobre este Diplomado
+
+Este diplomado cubre los fundamentos de los métodos estadísticos para el análisis de datos, utilizando R y Python.
+
+## Contenido del Curso
+
+- [Clase 1: Introducción y Frecuencias](clase1.qmd)
+- Clase 2: (Próximamente)
+- Clase 3: (Próximamente)
+
+Navega usando el menú superior para acceder a los materiales de cada clase.
