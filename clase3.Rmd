@@ -1,0 +1,167 @@
+---
+title: "Tablas de frecuencias"
+output:
+  html_document: default
+  word_document: default
+date: "2025-06-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Acá voy a calcular la tabla de frecuencias y explicar un proemdio $$ \overline{x}_i = \frac{\sum_{i = 1}^n  x_i}{n}$$
+
+
+```{r}
+library(dplyr)
+library(readr)
+library(janitor)
+
+```
+
+
+```{r}
+datos_ene <- read_csv2("Datos del hogar y la vivienda_ene.CSV")
+#datos_ene <- read_delim("Datos del hogar y la vivienda_ene.CSV", delim = ";")
+```
+
+
+
+
+
+```{r}
+table(datos_ene$P4030S1A1)
+```
+
+
+```{r}
+proportions(table(datos_ene$P4030S1A1))
+```
+
+```{r}
+prop.table(table(datos_ene$P4030S1A1))
+```
+
+```{r}
+datos_ene$P4030S1A1 <- factor(datos_ene$P4030S1A1, 
+                  labels = c("Sin energia", paste0("Estrato ",1:6), "NS/NR"))
+table(datos_ene$P4030S1A1 )
+```
+
+
+
+```{r}
+tabla <- datos_ene %>%
+  tabyl(P4030S1A1) %>%
+  mutate(
+    frecuencia_relativa = n / sum(n),
+    frecuencia_acumulada = cumsum(frecuencia_relativa)
+  )   # totales fila y columna
+print(tabla)
+```
+
+```{r}
+library(janitor)
+library(dplyr)
+library(scales)
+library(gt)
+
+# Paso 1: Tabla de frecuencias
+tabla <- datos_ene %>%
+  tabyl(P4030S1A1) %>%
+  rename(Categoría = P4030S1A1, Frecuencia = n) %>%
+  mutate(
+    `Frecuencia relativa` = Frecuencia / sum(Frecuencia),
+    `Frecuencia acumulada` = cumsum(`Frecuencia relativa`)
+  ) %>%
+  mutate(
+    `Frecuencia relativa` = percent(`Frecuencia relativa`, accuracy = 0.1),
+    `Frecuencia acumulada` = percent(`Frecuencia acumulada`, accuracy = 0.1)
+  )
+
+# Paso 2: Agregar fila Total
+tabla <- bind_rows(
+  tabla,
+  data.frame(
+    Categoría = "Total",
+    Frecuencia = sum(tabla$Frecuencia),
+    `Frecuencia relativa` = "100.0%",
+    `Frecuencia acumulada` = ""
+  )
+)
+
+# Paso 3: Tabla visual con gt
+tabla %>%
+  gt() %>%
+  tab_header(
+    title = "Tabla de Frecuencias",
+    subtitle = "Distribución de la variable P4030S1A1"
+  ) %>%
+  fmt_number(columns = Frecuencia, decimals = 0) %>%
+  cols_align(align = "center", columns = everything()) %>%
+  tab_options(
+    table.font.size = "medium",
+    heading.background.color = "#EAEAEA",
+    table.border.top.color = "gray",
+    table.border.bottom.color = "gray",
+    row.striping.background_color = "#F9F9F9",
+    row.striping.include_table_body = TRUE
+  ) %>%
+  opt_table_outline()
+
+
+```
+
+
+P5090: tenencia de vivienda
+P4030S1A1: estrato
+
+
+a. Propia, totalmente pagada
+b. Propia, la están pagando
+c. En arriendo o subarriendo
+d. En usufructo
+e. Posesión sin titulo (Ocupante de hecho) ó propiedad colectiva
+f. Otra
+
+
+
+
+
+```{r}
+etiquetas_tenencia <- c("Pagada", "Pagando",
+                        "Arriendo", "En usufructo",
+                        "Posesion", "Otra", "Ns/Nr")
+ datos_ene$P5090 <- factor( datos_ene$P5090, 
+                            labels = etiquetas_tenencia)
+table(datos_ene$P4030S1A1, datos_ene$P5090)
+```
+
+
+
+```{r}
+# Perfil fila
+proportions(table(datos_ene$P4030S1A1, datos_ene$P5090),  1)
+```
+
+
+```{r}
+# Perfil columna
+round(proportions(table(datos_ene$P4030S1A1, datos_ene$P5090),  2) * 100, 1)
+```
+
+
+
+```{r}
+library(sjPlot)
+tab_xtab(datos_ene$P4030S1A1, datos_ene$P5090,
+         show.row.prc = TRUE,     # % por fila
+         show.col.prc = TRUE,     # % por columna
+         show.cell.prc = TRUE,    # % respecto al total general
+         show.summary = TRUE, encoding = "latin1")     # totales fila y columna
+
+```
+
