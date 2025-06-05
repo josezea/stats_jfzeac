@@ -1,0 +1,228 @@
+---
+title: "Clase 4"
+output: html_document
+date: "2025-06-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Medidas de tendencia central
+
+Simularemos unos datos:
+
+```{r}
+set.seed(04062025)
+estatura_h = rnorm(1000, mean = 174, sd = 7)
+estatura_m <- rnorm(1000, mean = 160, sd = 5)
+```
+
+```{r}
+hist(estatura_h)
+```
+
+```{r}
+summary(estatura_h)
+```
+```{r}
+quantile(estatura_h, seq(0, 1, 0.05))
+```
+```{r}
+quantile(estatura_h, seq(0, 1, 0.25))
+
+```
+
+
+
+$$
+\overline{X} = \frac{\sum_{i= 1}^N x_i}{N} = (x_1+x_2+x_3+ \ldots x_N)/N
+
+
+$$
+
+
+```{r}
+mean(estatura_h)
+sum(estatura_h) / length(estatura_h)
+```
+
+
+# Mediana
+
+$$
+\tilde{x} = \begin{cases}
+x_{\left(\frac{n+1}{2}\right)}, & \text{if } n \text{ is impar} \\
+\frac{1}{2} \left(x_{\left(\frac{n}{2}\right)} + x_{\left(\frac{n}{2}+1\right)}\right), & \text{if } n \text{ is par}
+\end{cases}
+
+$$
+```{r}
+numero_hijos <- c(0, 0, 1, 2, 3, 4, 5)
+median(numero_hijos)
+
+```
+
+```{r}
+numero_hijos <- c(0, 1, 2, 3, 4, 5)
+median(numero_hijos)
+```
+
+
+```{r}
+median(estatura_h)
+```
+
+
+$$
+x_p =
+\begin{cases}
+\frac{1}{2} \left( x_{(np)} + x_{(np+1)} \right), & \text{si } np \text{ es un número entero} \\
+x_{\left( \lceil np \rceil \right)}, & \text{si } np \text{ no es un número entero}
+\end{cases}
+$$
+
+
+```{r}
+edades <- c(23, 26, 27, 30, 37, 41, 42, 45, 50, 60 )
+```
+
+Percentil 25:
+
+n = 10
+p = 0.25
+
+np = 10 X 0.25 = 2.5
+
+p25 = X(3)= 27 años
+
+np = 7.5
+p75 = X(8)= 45 años
+
+```{r}
+quantile(edades, 0.25)
+
+```
+
+```{r}
+quantile(edades, 0.75)
+```
+
+$$
+x_p =
+\begin{cases}
+\frac{1}{2} \left( x_{(np)} + x_{(np+1)} \right), & \text{si } np \text{ es un número entero} \\
+x_{\left( \lceil np \rceil \right)}, & \text{si } np \text{ no es un número entero}
+\end{cases}
+$$
+Percentil 40
+
+np = 10 * 0.4 = 4
+
+(X(4) + x(5)) / 2 =  (30 + 37) / 2 = 33.5
+
+```{r}
+edades <- c(23, 26, 27, 30, 37, 41, 42, 45, 50, 60 )
+
+```
+
+
+```{r}
+quantile(edades, 0.4)
+```
+
+
+Hagamos un ejercicio más realista:
+
+
+```{r}
+quantile(estatura_h, seq(0, 1, 0.1))
+```
+
+# Medidas de dispersión
+
+
+## Desviación Absoluta Media (DAM)
+
+La desviación absoluta media se calcula como:
+
+$$
+DAM = \frac{1}{n} \sum_{i=1}^{n} \left| x_i - \overline{x} \right|
+$$$
+
+## Mediana de las Desviaciones Absolutas (MADA)
+
+La mediana de las desviaciones absolutas (MADA) se define como:
+
+$$
+MAD = \text{mediana} \left( \left| x_i - Mediana \right| \right)
+$$
+
+
+## Desviación Estándar (DE)
+
+La desviación estándar muestral se expresa como:
+
+$$
+DEPoblacional = \sqrt{ \frac{1}{n} \sum_{i=1}^{n} \left( x_i - \overline{x} \right)^2 }
+$$
+Lo que está dentro de la raiz se llama Varianza y desafortudnamente esta en unidades a cuadrado
+
+
+$$
+DEmuestral = \sqrt{ \frac{1}{n-1} \sum_{i=1}^{n} \left( x_i - \overline{x} \right)^2 }
+$$
+
+
+```{r}
+edad <- c(17L, 25L, 28L, 29L, 31L, 35L, 40L, 50L, 60L)
+mean(edad)
+median(edad)
+sd(edad)
+mad(edad, constant = 1)
+```
+
+Desvacion absulta media
+```{r}
+mean(abs(edad - mean(edad)))
+```
+
+
+
+```{r}
+shapiro.test(estatura_h)
+```
+
+
+Un parentesis
+
+```{r}
+
+library(ggplot2)
+
+# Suponiendo que estatura_h es un vector numérico
+datos <- data.frame(estatura_h)
+
+# Calcular media y desviación estándar
+media <- mean(datos$estatura_h, na.rm = TRUE)
+desv <- sd(datos$estatura_h, na.rm = TRUE)
+# Graficar
+ggplot(datos, aes(x = estatura_h)) +
+  geom_histogram(aes(y = ..density..), bins = 30, 
+                 fill = "lightblue", color = "black", alpha = 0.6) +
+  stat_function(
+    fun = dnorm,
+    args = list(mean = media, sd = desv),
+    color = "darkred",
+    size = 1.2
+  ) +
+  labs(
+    title = "Histograma con Curva de Densidad Normal Teorica",
+    x = "Estatura (cm)",
+    y = "Densidad"
+  ) +
+  theme_minimal()
+
+
+```
+
