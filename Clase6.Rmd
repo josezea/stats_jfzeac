@@ -1,0 +1,428 @@
+---
+title: "Clase 6: gráficos y perfiles"
+output: html_document
+date: "2025-06-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+library(palmerpenguins) # Antes de R 4.5
+data("penguins")
+summary(penguins)
+```
+
+
+```{r}
+ggplot(data = penguins, aes(x = sex)) + 
+  geom_bar(stat = "count")
+```
+# Perfil fila
+
+```{r}
+proportions(table(penguins$island, penguins$sex), 1)
+```
+
+
+```{r}
+
+# Calcular proporciones
+penguin_percent <- penguins %>%
+  filter(!is.na(sex)) %>%  # Eliminar NAs en 'sex'
+  count(sex) %>%
+  mutate(percent = n / sum(n) * 100)
+# aes: esteticos
+# Graficar
+ggplot(penguin_percent, aes(x = sex, y = percent, fill = sex)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(percent, 1), "%")), 
+            vjust = -0.5, size = 5) +
+  labs(title = "Porcentaje de pingüinos por sexo",
+       x = "Sexo",
+       y = "Porcentaje") +
+  theme_minimal()
+
+```
+
+
+Diagrama de barras Apilado (stacked barplot)
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(palmerpenguins)
+
+# Crear tabla de proporciones por fila (por isla)
+prop_table <- proportions(table(penguins$island, penguins$sex, useNA = "always"), 1)
+
+# Convertir a data frame
+df_prop <- as.data.frame(prop_table)
+colnames(df_prop) <- c("island", "sex", "proportion")
+
+# Eliminar sexos NA
+df_prop <- df_prop %>% filter(!is.na(sex))
+
+# Graficar
+ggplot(df_prop, aes(x = island, y = proportion, fill = sex)) +
+  geom_bar(stat = "identity") +  # Por defecto position = "stack"
+  geom_text(aes(label = paste0(round(proportion * 100, 1), "%")), 
+            position = position_stack(vjust = 0.5), 
+            size = 4, color = "white") +
+  labs(title = "Proporción de sexos por isla (barras apiladas)",
+       x = "Isla",
+       y = "Proporción") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+
+# Gráfico Agrupado (dodged barplot)
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(palmerpenguins)
+
+# Crear tabla de proporciones por fila (por isla)
+prop_table <- proportions(table(penguins$island, penguins$sex, useNA = "always"), 1)
+
+# Convertir a data frame
+df_prop <- as.data.frame(prop_table)
+colnames(df_prop) <- c("island", "sex", "proportion")
+
+# Eliminar sexos NA para graficar solo male/female
+df_prop <- df_prop %>% filter(!is.na(sex))
+
+# Graficar
+ggplot(df_prop, aes(x = island, y = proportion, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(round(proportion * 100, 1), "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 4) +
+  labs(title = "Proporción de sexos por isla",
+       x = "Isla",
+       y = "Proporción") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+```
+
+
+
+
+
+# Perfil Columna
+
+```{r}
+proportions(table(penguins$island, penguins$sex), 2)
+```
+
+
+```{r}
+# Calcular proporciones por columna (dentro de cada sexo)
+prop_table <- proportions(table(penguins$island, penguins$sex), 2)
+
+# Convertir a data frame
+df_prop <- as.data.frame(prop_table)
+colnames(df_prop) <- c("island", "sex", "proportion")
+
+# Eliminar sexos NA
+df_prop <- df_prop %>% filter(!is.na(sex))
+
+# Graficar
+ggplot(df_prop, aes(x = sex, y = proportion, fill = island)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(proportion * 100, 1), "%")), 
+            position = position_stack(vjust = 0.5), 
+            size = 4, color = "white") +
+  labs(title = "Distribución de islas dentro de cada sexo (barras apiladas)",
+       x = "Sexo",
+       y = "Proporción") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+```
+
+
+```{r}
+# Tabla absoluta
+abs_table <- table(penguins$island, penguins$sex)
+
+# Tabla de proporciones por columna
+prop_table <- proportions(abs_table, 2)
+
+# Convertir ambas tablas en data frames
+df_abs <- as.data.frame(abs_table)
+df_prop <- as.data.frame(prop_table)
+colnames(df_abs) <- c("island", "sex", "count")
+colnames(df_prop) <- c("island", "sex", "proportion")
+
+# Combinar los datos
+df_combined <- left_join(df_prop, df_abs, by = c("island", "sex"))
+
+# Eliminar sexos NA
+df_combined <- df_combined %>% filter(!is.na(sex))
+
+# Crear etiqueta combinada
+df_combined <- df_combined %>%
+  mutate(label = paste0(round(proportion * 100, 1), "% (", count, ")"))
+
+# Graficar
+ggplot(df_combined, aes(x = sex, y = proportion, fill = island)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = label), 
+            position = position_stack(vjust = 0.5), 
+            size = 4, color = "white") +
+  labs(title = "Distribución de islas dentro de cada sexo",
+       subtitle = "Porcentaje con frecuencias absolutas entre paréntesis",
+       x = "Sexo",
+       y = "Proporción") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+```
+
+
+
+Sacar en una tabla el perfil fila y columna:
+
+```{r}
+sjPlot::sjt.xtab(var.row = penguins$island, var.col = penguins$sex, show.obs = T,
+                 show.row.prc = T, show.col.prc = T)
+```
+
+
+
+
+
+# Comparación de una variable continua dentro de los niveles de una variable categórica
+
+
+
+```{r}
+consulta <- penguins %>% group_by(sex) %>% summarise(promedio_pico = mean(bill_length_mm, na.rm = T),
+                                                     mediana_pico = median(bill_length_mm, na.rm = T))
+consulta
+```
+
+
+```{r}
+ggplot(penguins,aes(x = sex, y = bill_length_mm, fill = sex)) + geom_boxplot()
+```
+
+
+Bigote superior: P75 + 1.5 * RI
+Bigote inferior: P25 + 1.5 * RI
+
+
+```{r}
+ggplot(penguins,aes(x = bill_length_mm, color = sex)) + geom_density()
+
+```
+
+
+
+```{r}
+
+library(gghalves)
+
+# Clean data
+penguins_clean <- penguins %>% filter(!is.na(sex), !is.na(bill_length_mm))
+
+# Raincloud plot
+ggplot(penguins_clean, aes(x = sex, y = bill_length_mm, fill = sex)) +
+  geom_half_violin(side = "l", alpha = 0.5, color = NA, trim = FALSE) +
+  geom_half_boxplot(side = "r", width = 0.2, outlier.shape = NA) +
+  geom_jitter(width = 0.1, alpha = 0.3, size = 1.5) +
+  labs(title = "Raincloud plot of Bill Length by Sex",
+       x = "Sex",
+       y = "Bill Length (mm)") +
+  theme_minimal()
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+library(dplyr)
+
+# Eliminar NAs
+penguins_clean <- penguins %>% 
+  filter(!is.na(sex), !is.na(bill_length_mm))
+
+# Boxplot con promedios
+ggplot(penguins_clean, aes(x = sex, y = bill_length_mm, fill = sex)) +
+  geom_boxplot(alpha = 0.7) +
+  stat_summary(fun = mean, geom = "point", shape = 20, size = 4, color = "red") +
+  labs(title = "Longitud del pico por sexo",
+       subtitle = "El punto rojo indica el promedio",
+       x = "Sexo",
+       y = "Longitud del pico (mm)") +
+  theme_minimal()
+
+```
+
+
+
+
+```{r}
+# Clean data
+penguins_clean <- penguins$ %>% filter(!is.na(species), !is.na(bill_length_mm))
+
+# Raincloud plot
+ggplot(penguins_clean, aes(x = species, y = bill_length_mm, fill = species)) +
+  geom_half_violin(side = "l", alpha = 0.5, color = NA, trim = FALSE) +
+  geom_half_boxplot(side = "r", width = 0.2, outlier.shape = NA) +
+  geom_jitter(width = 0.1, alpha = 0.3, size = 1.5) +
+  labs(title = "Raincloud plot of Bill Length by Sex",
+       x = "species",
+       y = "Bill Length (mm)") +
+  theme_minimal()
+```
+
+
+
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+library(dplyr)
+
+# Eliminar NAs
+penguins_clean <- penguins %>% 
+  filter(!is.na(sex), !is.na(bill_length_mm), !is.na(species))
+
+# Boxplot por sexo, facet por especie
+ggplot(penguins_clean, aes(x = sex, y = bill_length_mm, fill = sex)) +
+  geom_boxplot(alpha = 0.7) +
+  stat_summary(fun = mean, geom = "point", shape = 20, size = 3.5, color = "red") +
+  facet_wrap(~ species) +
+  labs(title = "Longitud del pico por sexo y especie",
+       subtitle = "Promedios marcados en rojo",
+       x = "Sexo",
+       y = "Longitud del pico (mm)") +
+  theme_minimal()
+
+```
+
+
+
+# Diagrama de dispersión
+
+
+```{r}
+ggplot(data = penguins, aes(x = bill_length_mm, y = body_mass_g))+ geom_point() +
+  geom_smooth(se = F)
+```
+
+
+```{r}
+ggplot(data = penguins, aes(x = bill_length_mm, y = body_mass_g)) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Suavizado no lineal
+  geom_smooth(method = "lm", se = FALSE, color = "red") +      # Recta de regresión lineal
+  labs(title = "Relación entre longitud del pico y masa corporal",
+       x = "Longitud del pico (mm)",
+       y = "Masa corporal (g)",
+       caption = "Curva azul: suavizado LOESS | Línea roja: regresión lineal") +
+  theme_minimal()
+
+```
+
+
+```{r}
+cor(penguins$bill_length_mm, penguins$body_mass_g, use ="pairwise.complete.obs" )
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+library(dplyr)
+
+# Limpiar datos: eliminar NA en sex, bill_length_mm y body_mass_g
+penguins_clean <- penguins %>% 
+  filter(!is.na(sex), !is.na(bill_length_mm), !is.na(body_mass_g))
+
+ggplot(data = penguins_clean, aes(x = bill_length_mm, y = body_mass_g)) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Suavizado no lineal
+  geom_smooth(method = "lm", se = FALSE, color = "red") +      # Regresión lineal
+  facet_wrap(~ sex) +                                          # Facet por sexo
+  labs(title = "Relación entre longitud del pico y masa corporal",
+       subtitle = "Separado por sexo",
+       x = "Longitud del pico (mm)",
+       y = "Masa corporal (g)",
+       caption = "Curva azul: suavizado LOESS | Línea roja: regresión lineal") +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+library(dplyr)
+
+# Limpiar datos: eliminar NA en sex, species, bill_length_mm y body_mass_g
+penguins_clean <- penguins %>% 
+  filter(!is.na(sex), !is.na(species), !is.na(bill_length_mm), !is.na(body_mass_g))
+
+ggplot(data = penguins_clean, aes(x = bill_length_mm, y = body_mass_g)) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Curva LOESS
+  geom_smooth(method = "lm", se = FALSE, color = "red") +      # Regresión lineal
+  facet_grid(sex ~ species) +                                  # Facet por sexo (filas) y especie (columnas)
+  labs(title = "Relación entre longitud del pico y masa corporal",
+       subtitle = "Faceteado por sexo (filas) y especie (columnas)",
+       x = "Longitud del pico (mm)",
+       y = "Masa corporal (g)",
+       caption = "Curva azul: LOESS | Línea roja: regresión lineal") +
+  theme_minimal()
+
+```
+
+
+
+# Histograma y diagrama de densidad
+
+```{r}
+# Clean data
+penguins_clean <- penguins %>% 
+  filter(!is.na(bill_length_mm))
+
+# Plot
+ggplot(penguins_clean, aes(x = bill_length_mm)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "skyblue", color = "white", alpha = 0.6) +
+  geom_density(color = "darkblue", size = 1.2) +
+  labs(title = "Distribución de la longitud del pico",
+       x = "Longitud del pico (mm)",
+       y = "Densidad") +
+  theme_minimal()
+
+```
+
+
