@@ -1,0 +1,240 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-06-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Conceptos básicos probabilidad
+
+Experimento aleatorio: 
+
+- Espacio muestral ($\Omega$): el conjunto de todos los posibles resultados de un experimento aleatorio.
+
+$$\Omega = (⚀, 	⚁, 	⚂, ⚃ ,⚄ , ⚅)$$
+
+Ejemplo evento: obtener un numero par,
+
+
+$$A = (⚁, 	⚃ ,,⚅)$$
+
+Si los eventos son equiprobabiles, entonces la probilidad de A es el numero de casos favorables de A, sobre el numero de casos totales del espacio muestral.
+
+
+$$
+P(A) =  \frac{CardA}{Card\Omega} = \frac{3}{6} = 1/2
+$$
+
+# Axiomas de probabilidad
+
+Si A es un evento cualquiera
+1. $0 \leq P(A)\leq 1$
+2.$P(\Omega)=1$
+3.Si tengo eventos mutuamente excluyentes $A_1$, $A_2$, ...$A_k$
+
+$$
+P(A_1 \cup A_2 \cup A_k) = P(A_1) + P(A_2) + \ldots P(A_k) 
+$$
+
+Ejemplo: considere el experimento seleccionar una persona, A1: seleccionar alguuien menor de 25 años, 
+A2: seleccionar alguien mayor a 40
+
+P(A1 U A2) = P(A1) + P(A2
+
+Ejemplo 2: A: ser impar, B; obtener el 6, P(AUB) = P(A) + P(B) = 0.1 + 0.5 = 0.6
+
+
+
+
+)
+
+ 0.1 0.1 0.1 0.1 0.1 0.5
+
+
+0, 1, 2, 3
+
+Definición frecuentista probabilidad: si se repite un numéro muy grande de veces el experimento, la proporción
+de veces que aparece un resultado es lo que se conoce la prababilidad.
+
+Ejemplo: simulación de lanzar 10 veces un dado
+
+
+```{r}
+sample(1:6, 10, replace = TRUE, prob = rep(1/6, 6))
+```
+
+```{r}
+dado <- function(lanzamientos){
+  sample(1:6, lanzamientos, replace = TRUE, prob = rep(1/6, 6))
+
+}
+proportions(table(dado(10000)))
+
+```
+
+
+```{r}
+set.seed(123)  # Para reproducibilidad
+
+# Función que lanza un dado
+dado <- function(lanzamientos) {
+  sample(1:6, lanzamientos, replace = TRUE, prob = rep(1/6, 6))
+}
+
+# Número de lanzamientos
+n <- 10000
+
+# Simulación de todos los lanzamientos
+resultados <- dado(n)
+
+# Calcular proporción acumulada de 6's
+proporcion_6s <- cumsum(resultados == 6) / 1:n
+
+# Crear data frame
+df <- data.frame(
+  lanzamientos = 1:n,
+  proporcion = proporcion_6s
+)
+
+# Graficar
+library(ggplot2)
+
+ggplot(df, aes(x = lanzamientos, y = proporcion)) +
+  geom_line(color = "darkgreen") +
+  geom_hline(yintercept = 1/6, linetype = "dashed", color = "red") +
+  labs(title = "Proporción acumulada de '6's en lanzamientos de dado",
+       x = "Número de lanzamientos",
+       y = "Proporción de '6's") +
+  theme_minimal()
+
+```
+
+
+
+Eventos aleatorias equiprobables: es cuando todos los resultados de un experimento aleatoria tienen la misma
+probabilidad.
+
+
+
+Ejemplo2: experimento: seleccionar una persona en el curso
+
+Evento: es un subconjunto del espacio muestral (ej. que sea mujer, A)
+
+$$\Omega = (P_1, P_2, P_3, \ldots P_{20})$$
+$$A = (P_1, P_4, P_7, \ldots P_{18})$$
+
+
+
+
+Simulemos un dado con una probabilidad de 0.5 de obtener el 6, y de 0,1 de obtener los otros valores:
+
+
+```{r}
+sample(1:6, size = 1000, replace = TRUE, prob = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.5))
+```
+
+```{r}
+table(sample(1:6, size = 1000, replace = TRUE, prob = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.5)))
+```
+
+```{r}
+proportions(table(sample(1:6, size = 1000, replace = TRUE, prob = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.5))))
+```
+
+
+
+$$
+
+P(A \cup B) = P(A) + P(B) - P(A\cap B) 
+
+$$
+
+
+
+Simulación de la suma de dos dados:
+
+```{r}
+dado1 <- sample(1:6, size = 20000, prob = rep(1/6, 6), replace = TRUE)
+dado2 <- sample(1:6, size = 20000, prob = rep(1/6, 6), replace = TRUE)
+table(dado1 + dado2)
+```
+
+```{r}
+prop.table(table(dado1 + dado2))
+```
+
+
+
+# Probabilidad del completo
+
+$$
+A \cup A' = \Omega
+
+$$
+
+$$
+
+1 = P(\Omega) = P(A\cup A') = P(A) + P(A')
+$$
+
+Resultado:
+
+$$
+P(A') = 1- P(A)
+$$
+
+$$
+A = (A')'
+
+$$
+
+# Probabilidad de vacío
+
+
+
+$$
+1 = P(\Omega) = P(\Omega \cup \emptyset)=P(\Omega) + p(\emptyset) = 1 + P(\emptyset)
+$$
+Luego:
+
+$$
+P(\emptyset) = 0
+
+$$
+
+
+# Ejemplo GEIH
+
+
+```{r}
+library(readr)
+datos <- read_csv2("Datos del hogar y la vivienda_ene.CSV")
+```
+
+
+
+
+```{r}
+library(dplyr)
+datos_bgta <- datos %>% filter(DPTO == "11") 
+proportions(table(datos_bgta$P4030S1A1))
+```
+Experimento: seleccionar aleatoriamente un hogar en Bogota
+Espacio muestral: Omga = {Viv1, Viv2, ...Viv833}
+A: Ser de estrato 5 o 6
+
+
+A1: tenga estrato 1, ...A6: ser de estrato 6
+
+P(A5 U A6) = P(A5) + P(A6) = .05522209 + 0.01200480 =  0.06722689
+
+
+
+# Proximamente: Distribuciones de probabilidad discretas
+
+
+# Proximamente: Distribuciones de probabilidad continuas
