@@ -1,0 +1,241 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-06-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**Regla fundamentos del conteo**: si para el primer experimento tengo $n_1$ opciones y para el segundo experimento $n_2$ opciones y asi sucesivamente, ... $n_k$
+
+
+el numero numero total de opciones que tengo es:
+
+$$
+n_1 \times n_2 \times n_3, \ldots n_k
+$$
+ejemplo: tres camisas y dos pantalones, entonces el numero de "pintas" es 3 X 2 = 6
+
+C1P1, C1P2 C2P1 C2P2 C3P1 C3P2
+
+
+
+1. Cuantas placas se pueden formar en Colombia
+
+$$
+26 \times 26 \times 26 \times 10 \times 10 \times 10 
+$$
+
+2. Tienes 5 libros de diferentes autores y quieres acomodarlos en un estante. ¿De cuántas maneras distintas puedes ordenarlos?
+
+
+$$
+5 \times 4 \times 3 \times 2 \times 1 
+$$
+
+```{r}
+library(TeachingSampling)
+library(combinat)
+library(gtools)
+```
+
+
+
+```{r}
+factorial(5)
+```
+
+```{r}
+permn(letters[1:5])
+```
+
+
+
+3. Una agencia automotriz recibe un embarque de 20 automóviles nuevos. Entre éstos, dos tienen defectos. La agencia decide seleccionar, aleatoriamente, dos automóviles de entre los 20 y aceptar el embarque si ninguno de los dos vehículos seleccionados tiene defectos. ¿Cuál es la probabilidad de aceptar el embarque?
+
+N = 20, n = 2
+
+a. Numero de casos posibles que se den de seleccionar de 20 automoviles 2 para revisarlos.
+
+$$
+\binom{20}{2} = 190 = \frac{20!}{18!2!}=(19 \times 20) / 2
+$$
+
+```{r}
+choose(20, 2)
+```
+
+```{r}
+Support(N = 20, n = 2, c("d1", "d2", paste0("b", 1:18)))
+```
+
+
+
+b. Numero de casos favorables: numero de casos donde selecciono de 18 carros buenos dos de ellos en la muestra y de 2 carros malos no selecciono ninguno
+
+
+$$
+\binom{18}{2}\binom{2}{0}
+
+$$
+
+
+```{r}
+choose(18, 2) * choose(2,0)
+```
+
+```{r}
+Support(N = 18, n = 2, paste0("b", 1:18))
+```
+
+
+Probababilidad de que en una muestra de dos los dos carros salgan buenos:
+
+
+```{r}
+153 / 190
+```
+
+
+```{r}
+(18/20) * (17/19)
+```
+
+
+
+3b. Una agencia automotriz recibe un embarque de 20 automóviles nuevos. Entre éstos, dos tienen defectos. La agencia decide seleccionar, aleatoriamente, dos automóviles de entre los 20 y aceptar el embarque si ambos vehículos seleccionados son defectos. ¿Cuál es la probabilidad de aceptar el embarque?
+
+
+```{r}
+(2/20) * (1/19)
+```
+
+
+$$
+\frac{\binom{18}{0}\binom{2}{2}}{\binom{20}{2}}=1/190 =  0.005263158
+
+$$
+
+4. Si se lanza 20 veces una moneda, se sabe que se obtuvieron 3 caras, de cuantas maneras posibles se pueden obtener las 3 caras
+
+
+CCC   SSS..S (17 veces)
+CSCC,  SS...S (16 veces)
+        .
+        .
+        .
+SSS.SS (17 veces) CCC
+
+
+```{r}
+casos <- Support(N = 20, n = 3, 1:20)
+```
+
+
+
+
+4b. Se lanzo 5 veces la moneda y obtengo dos caras, cuantos casos tengo
+
+CCSSS
+CSCSS
+CSSCS
+CSSSC
+SCCSS
+SCSCS
+SCSSC
+SSCCS
+SSCSC
+SSSCC
+
+$$
+\binom{5}{2} = \frac{5!}{3!2!}=(4 \times 5 )/ 2 = 10
+$$
+
+
+
+5. En una clase de 25 estudiantes (15 mujeres y 10 hombres), se quiere formar un comité de 4 personas.
+a) ¿Cuántos comités diferentes se pueden formar?
+b) ¿Cuántos comités se pueden formar si deben estar compuestos por 2 mujeres y 2 hombres?
+ 
+c) Cual es la probabilidad de que en el comite haya miti y miti hombres y mujeres?
+ 
+
+$$
+\frac{\binom{15}{2}\binom{10}{2}}{\binom{25}{4}}
+$$
+```{r}
+(choose(15, 2) * choose(10,2)) / choose(25, 4)
+```
+
+
+Casos posibles
+
+```{r}
+casosposibles <- Support(25, 4, c(paste0("M", 1:15), paste0("H", 1:10)))
+```
+
+
+
+Casos favorables:
+
+Seleccionar mujeres
+
+```{r}
+Support(15, 2, paste0("M", 1:15))
+```
+
+```{r}
+Support(10, 2, paste0("H", 1:10))
+
+```
+
+
+
+Ganarse baloto
+
+$$
+\binom{43}{5}  \times \binom{16}{1} 
+
+$$
+```{r}
+choose(43,5) * choose(16,1)
+```
+Probabilidad de ganarse el baloto:
+
+```{r}
+1 / choose(43,5) * choose(16,1)
+
+```
+
+
+
+
+
+
+
+```{r}
+balotasOrden <- permutations(n = 10, r = 3 , v = paste0("B", 0:9), set = TRUE, repeats.allowed = FALSE)
+balotasOrdenNoimporta <- Support(10,3, paste0("B", 0:9))
+
+```
+
+
+
+# Variable aleatorio
+
+Suma de los dados
+
+
+```{r}
+x <- 2:12
+p <- c(1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1) / 36
+```
+
+
+```{r}
+plot(x, p, type = "h", ylab = "P(X)", main = "Distribución de probabilidad (Función de masa)")
+```
+
