@@ -1,0 +1,250 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-06-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Variable aleatorio
+
+Suma de los dados
+
+
+```{r}
+x <- 2:12
+p <- c(1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1) / 36
+```
+
+
+```{r}
+plot(x, p, type = "h", ylab = "P(X)", main = "Distribución de probabilidad (Función de masa)")
+```
+
+
+
+Lanzar 1 millon dos dados
+
+
+```{r}
+set.seed(618)
+dado1 <- sample(1:6, size = 1000000, replace = TRUE, prob = rep(1/6, 6))
+dado2 <- sample(1:6, size = 1000000, replace = TRUE, prob = rep(1/6, 6))
+suma <- dado1 + dado2
+
+
+```
+
+
+
+```{r}
+table(suma)
+```
+
+
+
+```{r}
+proportions(table(suma))
+```
+
+```{r}
+median(suma)
+```
+
+```{r}
+mean(suma)
+```
+
+
+
+$$
+
+\overline{x} = \frac{\sum_{i=1}^{n} c_i x_i}{\sum_{i}^{n}c_i} = \sum_{i=1}^n \tilde w_i x_i
+
+
+$$
+
+Puntuacion 3 5   4
+Creditos   1 4  2
+
+
+(3 * 1 + 5 * 4 + 4 * 2) / 7
+
+(1 / 7)  1   + (4 / 7) * 5  + (2/7) * 4 
+
+
+Valor esperado
+
+$$
+ E(X)=\sum_x  x \times P(X = x) 
+$$
+
+
+```{r}
+x <- 2:12
+p <- c(1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1) / 36
+```
+Valor esperado (teórico)
+
+```{r}
+sum(x*p)
+```
+
+
+
+Simulemos una población de 1 millon de personas de más de 40
+
+
+```{r}
+x <- 0:6
+p <- c(0.4, 0.35, 0.12,	0.07,	0.03,	0.02,	0.01)
+
+hijos <- sample(0:6, size = 1000000, replace = TRUE, prob = p)
+
+cat("Valor esperado \n")
+sum(x * p)
+cat("Estimación empírica del valor esperado \n")
+mean(hijos)
+```
+
+```{r}
+hist(hijos)
+```
+
+
+```{r}
+plot(x, p, type = "h")
+```
+
+
+
+
+# Distribución Bernoulli
+
+
+Simulamos una moneda cargada hacia el sello (0,8)
+
+$$
+\Omega = (C, S)
+$$
+
+X(Cara): 1
+X(Sello): 0
+
+
+```{r}
+moneda <- sample(x = 0:1, size = 1000000, replace = TRUE, prob = c(0.2, 0.8))
+# moneda <- rbinom(n = 1000000, size = 1, prob = 0.8)
+
+```
+
+
+```{r}
+mean(moneda)
+```
+
+
+
+```{r}
+moneda2 <- sample(x = 0:1, size = 1000000, replace = TRUE, prob = c(0.01, 0.99))
+table(moneda2)
+```
+
+
+
+# Variables continuas
+
+
+
+```{r}
+set.seed(758)
+estaturas <- rnorm(1000000, mean = 170, sd = 7)
+```
+
+
+
+```{r}
+hist(estaturas, freq = FALSE)
+```
+
+
+
+```{r}
+hist(estaturas, freq = FALSE, breaks = 100)
+
+```
+
+
+$$
+\int_{-\infty }^{\infty}f(x)dx
+
+$$
+$$
+F(160) = P(X  \leq 160)
+$$
+```{r}
+pnorm(q = 160, mean = 170, sd = 7)
+```
+
+$$P(X > 160) = 1 - P(X \leq 160)$$
+```{r}
+1 - pnorm(q = 160, mean = 170, sd = 7)
+
+```
+
+
+
+$$
+f(x) = \frac{1}{2\pi\sigma}exp\left(-\frac{1}{2\sigma^2}(x-\mu)^2\right)
+$$
+
+
+$$
+P(X > 190) = P(X \geq 190)
+
+$$
+```{r}
+1 - pnorm(q = 190, mean = 170, sd = 7)
+```
+
+
+
+$$
+P(167 < X < 173) = F(173) - F(167)
+$$
+
+
+```{r}
+pnorm(q = 173, mean = 170, sd = 7) - pnorm(q = 167, mean = 170, sd = 7)  
+```
+
+
+
+```{r}
+estaturas <- rnorm(1000000, mean = 170, sd = 7)
+proportions(table(estaturas <= 160))
+```
+
+
+
+```{r}
+proportions(table(estaturas <= 173 & estaturas >= 167))
+
+```
+
+
+Asuma que la estatura promedio de las mujeres en Bogotá es de 160 cms, con una desviación estándar de 5.5. Si la estatura sigue la distribución normal.
+
+¿Cuál es la probabilidad de encontrar una mujer de más de 175 cms
+
+
+
+
+```{r}
+x <- runif(1000000)
+hist(x)
+```
+
