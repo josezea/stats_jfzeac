@@ -184,7 +184,7 @@ Y = X - K,    4 = 6 - 2
 DEspejando X = Y + k    6 = 4 + 2   Visitas = fracasos + exitos
 
 $$
-P(Y=y) = \binom{y+k-1}{k-1}p^k(1-p)^{y} 
+P(Y=y) = \binom{y+k-1}{k-1}p^k(1-p)^{y} , Y = 0, 1, ...
 $$
 
 
@@ -207,11 +207,6 @@ $$
 
 
 
-
-
-
-
-
 En el problema del visitar médico que haga más de 5 visitas es lo mismo que el vistador médico tenga más de 3 fracasos:
 
 $$
@@ -224,9 +219,120 @@ $$
 ```
 
 
-# Hipergeometrica
+Ejercicio: si la probabilidad de conversión de un periodico por medio de Email Marketing (Boletin de noticias) es del 6%,
+
+¿Cuál es la probabilidad de que requiere enviar más de 30 emails a un cliente para convertir?
+
+Asuma que la conversión es independiente entre email e email.
+
+
+X = 30, K = 1
+Y = 29, K = 1
+
+P(X > 30)
+
+P (Y > 29)
+
+
+Cuando K = 1, la binomial negativa se llama una distribución de probabilidad geométrica.
+
 
 
 # Poisson
 
+La variable aleatoria X cuantifica el conteos de eventos aleatorios en un intervalo de tiempo (de área, de volumen). Requiere tener el promedio de ocurrencia del fenómeno de interés en el intevalo.
+
+Número de personas concurrentes en un sitio web, $\lambda = 16000.2$ / minuto
+
+Numero de goles de local que hace un equipo en promedio, $\lambda = 1.8$ por partido
+
+Número total de reclamaciones en un seguro por mes $\lambda = 22.1$ por mes
+
+
+La ditribución de Poisson modela una variable aleatoria x, X = 0, 1, 2, ...
+$$
+P(x;\lambda) = \frac{\lambda^xe^{-\lambda}}{x!}
+$$
+
+Ejercicio: si el número promedio de usuarios concurrentes en un evento como un temblor es de 16.000. ¿Cuál es la probabilidad de que se llegue a más de 20.000 usuarios concurrentes.
+
+
+Unidades: por cada 10 mil, $\lambda = 1.6$
+
+$$
+P(X > 2) = 1 - P(X <=2) = 1-P(X=0)-P(X=1)-P(X=2)
+$$
+
+```{r}
+1 - ppois(q = 2, lambda = 1.6)
+```
+
+En una Poisson el valor esperado y la varianza son iguales a $\lambda$
+
+$$
+E(X) = V(X)= \lambda
+
+$$
+La desviación estándar es $\sqrt{\lambda}$
+
+
+**Ejercicio**: una prueba de laboratorio determina que en promedio sólo fallarán dos componentes de un automóvil antes de tener 1000 horas de operación. Un comprador observa que son cinco los que fallan antes de las 1000 horas, ¿existe suficiente evidencia para dudar de la conclusión del fabricante?
+
+
+$$
+\lambda = 2, \newline ¿P(X = 5)? \newline ¿P(X \ge 5)=1- P(X \le4)?
+$$
+```{r}
+1-ppois(q = 4, 2)
+```
+
+
+# Hipergeometrica
+
+Se tiene una urna con N elementos de los cuales K son bolas blancas y N-K son bolas negras y se saca una muestra de n, la variable aleatoria X representa el número de bolas blancas en la muestra de tamaño n:
+
+$$
+p(X = x) = \frac{\binom{K}{x}\binom{N-K}{n-x}}{\binom{N}{n}}
+$$
+
+K: El número de bolas blancas en la Urna
+N-K: El número de bolas negras en la Urna
+N: el número total de bolas en la urna
+
+
+x: el número de bolas blancas que salen en la muestra.
+n: el número de bolas que se saca en la muestra (sin reemplazo) de la urna
+
+Ejemplo: si tengo 10 bolas blancas y 5 negras, saco una muestra de 4, ¿Cuál es la proabilidad de sacar exactamente 3 bolas blancas en la muestra?
+
+```{r}
+dhyper(x = 3, m = 10, n = 5, k = 4)
+
+```
+
+```{r}
+(choose(10, 3) * choose(5, 1)) / choose(15, 4)
+```
+
+
+¿Cuál es la probabilidad de que obtenga menos de 3 bolas blancas:
+
+
+```{r}
+phyper(q = 2, m = 10, n = 5, k = 4)
+
+```
+
+
+
+```{r}
+dhyper(x = 0:4, m = 10, n = 5, k = 4)
+
+```
+
+
+
+```{r}
+plot(0:4, dhyper(x = 0:4, m = 10, n = 5, k = 4), type = "h")
+```
 
