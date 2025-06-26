@@ -1,0 +1,232 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-06-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Distribución Bernoulli
+
+
+$$
+X \sim \text{Bernoulli}(p), \quad \text{where} \quad
+P(X = x) = 
+\begin{cases}
+p & \text{if } x = 1 \\
+1 - p & \text{if } x = 0 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+
+$$
+P(X = x) = p^x(1-p)^{1-x}, x \in \{0,1\}
+$$
+
+
+# Variable aleatorio Binomial
+
+Lanzando tres veces la moneda: X1 = 1 (cara), X1 = 0 (sello)
+
+```{r}
+X1 <- rbinom(n = 1, size = 1, prob = 0.5)
+X2 <- rbinom(n = 1, size = 1, prob = 0.5)
+X3 <- rbinom(n = 1, size = 1, prob = 0.5)
+Y <- X1 + X2 + X3
+print(Y)
+```
+Más fácil: size: el número de experimentos.
+
+```{r}
+rbinom(n = 1, size = 3, prob = 0.5)
+```
+Se tiene n experimentos INDEPENDIENTES, una probabilidad de éxito p (parámetro), la variable aleatoria Y representa el número de éxitos en los n experimentos, $Y = 0, 1, \ldots n$
+
+$$
+P(Y = y) = \binom{n}{y}p^y(1-p)^{n-y}
+
+$$
+'Ejemplo: n = 10, p = 0.6, n = 10
+
+
+
+$$
+P(X = 4) = \binom{n}{4}p^x(1-p)^{n-4}
+
+$$
+
+```{r}
+dbinom(x = 4,size = 10, prob = 0.6 )
+```
+```{r}
+choose(10,4) * ((0.6)^4) * ((0.4)^6) 
+```
+
+
+
+Supongamos lanzamos 10 veces la modeda:
+
+```{r}
+rbinom(n = 1, size = 10, prob = 0.5)
+
+```
+
+
+¿Cuál es la prrobabilid  de obtener en los 10 lanzamientos, menos de dos caros:
+
+$$
+F(1) = P(X \leq 1) = \sum_{x=0}^{2} \binom{n}{x}p^x(1-p)^{n-x} = P(X = 0) + P(X = 1)
+
+
+$$
+
+
+```{r}
+choose(10, 0) * (0.6^0) * (0.4^10) + choose(10, 1) * (0.6^1) * (0.4^9) 
+```
+```{r}
+pbinom(q = 1, size = 10, prob = 0.6)
+```
+
+Calcula la probabilidad de obtener 5 o más caras en los 10 lanzamientos
+
+$$
+P(X \ge 5) = 1- P(X \le 4) = 1- F(4)
+$$
+```{r}
+1 - pbinom(q = 4, size = 10, prob = 0.6)
+
+```
+
+
+```{r}
+ dbinom(x = 0:10, size = 10, prob = 0.6)
+```
+
+
+```{r}
+plot(0:10,  dbinom(x = 0:10, size = 10, prob = 0.6), type = "h", xlab = "X", ylab = "P(X = x)")
+```
+
+
+
+Con simulación
+
+```{r}
+lanzamientos <- rbinom(n = 100000, size = 10, prob = 0.6)
+hist(lanzamientos)
+```
+
+
+# Valor 
+Pag 94,
+
+$$
+E(X) = np \newline
+V(X) = np(1-p)
+$$
+
+
+Aplicación: control de calidad: un proceso industrial se dice que está bajo control si menos del 5% de los productos manafacturados tienen defectos. Un inspector de calidad utiliza la siguiente regla de control, observa una muestra cada hora de 20 productos y si encuentra al menos 1 defectuoso rechaza el lote y detiene el proceso.
+
+¿Cuál es la probabilidad de que un lote de evaluación haga detener el proceso.
+
+
+$$
+P(Y >= 1) = 1 - P(Y = 0)
+$$
+```{r}
+1 - dbinom(x = 0, size = 20, prob = 0.05)
+```
+Que pasa si el proceso se detiene con observar dos defectuosos
+
+
+$$
+P(Y >= 2) = 1 - P(Y = 0) - P(Y = 1) = 1-P(Y \leq 1)=1-F(1)
+$$
+
+```{r}
+1 - pbinom(q = 1, size = 20, prob = 0.05)
+
+```
+
+
+# Binomial negativa
+
+## Forma 1:
+La variable aleatorio que denota el número de intentos hasta obtener K exitos se denomina la binomial negativa
+$x = k, k+1, ...$
+
+
+$$
+P(X) = \binom{x-1}{k-1}p^k(1-p)^{x-k} 
+$$
+Ejercicio: si un visitador médico debe lograr dos ventas, cuál es la proabilidad de que tenga que hacer más de 5 visitas:
+
+$$
+P(X \ge 5) = 1-P(x \leq 4) = 1-F(4) = 1-(P(X=2)+P(X=3)+P(X=4))
+$$
+```{r}
+1-(choose(1,1)*(0.4^2)*(0.6)^0 + choose(2,1)*(0.4^2)*(0.6)^1 +  choose(3,1)*(0.4^2)*(0.6)^2 ) 
+```
+# Segunda escritura de la binomial negativa
+
+Sea Y como la variable aleatoria del número de fracasos que necesito antes de obtener los K éxitos, 
+en nuestro ejemplo anterior sime pregunto por hacer  6 visitas (X = 6) antes de obtener los 2 éxitos, la variable aleatoria cuantificaría que requiero 4 fracasos (Y = 4) antes de obtener los dos éxitos (k = 2)
+
+Y = X - K,    4 = 6 - 2
+
+DEspejando X = Y + k    6 = 4 + 2   Visitas = fracasos + exitos
+
+$$
+P(Y=y) = \binom{y+k-1}{k-1}p^k(1-p)^{y} 
+$$
+
+
+R lo hace con X como el numero de fracasos antes de X exitos
+Para calcula que le toma 6 visitas es por que Y = 4 (fracasos) para obtener los dos éxitos
+
+```{r}
+dnbinom(4, size = 2, prob = 0.4)
+```
+
+Es lo mismo que preguntarse por 6 visitas (X = 6) para obtener dos exitos 
+
+$$
+P(X) = \binom{x-1}{k-1}p^k(1-p)^{x-k} 
+$$
+```{r}
+ choose(5,1)*(0.4^2)*(0.6)^4 
+```
+
+
+
+
+
+
+
+
+
+En el problema del visitar médico que haga más de 5 visitas es lo mismo que el vistador médico tenga más de 3 fracasos:
+
+$$
+P(Y \geq 3) = 1-P(Y\le 2)
+$$
+
+```{r}
+1-pnbinom(q = 2, size = 2, prob = 0.4) # size: k, q = 2
+
+```
+
+
+# Hipergeometrica
+
+
+# Poisson
+
+
