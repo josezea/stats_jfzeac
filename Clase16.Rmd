@@ -1,0 +1,182 @@
+---
+title: "Clase 16"
+output: html_document
+date: "2025-07-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+data("penguins")
+#library(palmerpenguins)
+#data("penguins")
+summary(penguins)
+```
+
+
+Seleccionar una muestra de tamaño 50 (sin reemplazo) donde todos tienen la misma probabilidad de ser seleccionado (muestreo aleatorio simple sin reemplazo - SWOR)
+
+
+```{r}
+set.seed(651)
+indice_muestra <- sample(x = 1:nrow(penguins), size = 50, replace = FALSE)
+indice_muestra # Las filas a ser seleccionados
+```
+
+```{r}
+muestra <- penguins[indice_muestra, ]
+```
+
+
+Muestreo con reemplazo
+
+```{r}
+set.seed(651)
+indice_muestra2 <- sample(x = 1:nrow(penguins), size = 50, replace = TRUE)
+indice_muestra2 #
+```
+
+
+```{r}
+muestraR <- penguins[indice_muestra2,]
+```
+
+
+```{r}
+nombres <- c(
+  "Alvaro Romero",
+  "carlos pineda",
+  "Daniela rocha",
+  "Hector Alvarado",
+  "jeremy hurtado",
+  "Jorge Isaac Nieto Rojas",
+  "Juan Fernando Jiménez",
+  "Juan Manuel Riaño",
+  "Lina Sanchez",
+  "Paola Canticus",
+  "Sandra Cubides Lopez")
+
+```
+
+
+Sacar un muestreo con reemplazo de las 11 personas de tamaño 4
+
+```{r}
+#set.seed(706)
+nombres[sample(1:length(nombres), size = 4, replace = TRUE)]
+```
+
+
+Sacar muestra de tamaño 11 con reemplazo
+
+```{r}
+#set.seed(706)
+  nombres[sample(1:length(nombres), size = 11, replace = TRUE)]
+```
+
+Sacar una muestra de tamaño 40
+
+```{r}
+  nombres[sample(1:length(nombres), size = 40, replace = TRUE)]
+
+```
+
+
+
+
+# Bootstrap
+
+Simular una población de las estaturas de las mujeres en bogotá mayores de 18 años
+(2.500.000)
+
+```{r}
+set.seed(711)
+estaturas <- rnorm(n = 2500000, mean = 160, sd = 3.8)
+hist(estaturas)
+```
+
+
+
+Se quiere estudiar el promedio de las mujeres en Bogotá, para esto se seleccionará un muestreo aleatorio simple sin reemplazo de tamaño
+
+```{r}
+library(samplesize4surveys)
+ss4m(N = 2500000, mu = 160, sigma = 3.8, conf = 0.95, error = "rme", delta = 0.005)
+```
+
+
+Sacar una muestra sin reemplazo  de tamaño 100 para las 2.500.000 mujeres:
+
+```{r}
+set.seed(720)
+muestra <- estaturas[sample(1:length(estaturas), 100)]
+head(muestra, 10)
+```
+
+```{r}
+mean(muestra)
+```
+
+
+
+Paso a paso sacar las 1000 muestras con reemplazo de tamaño 100, en cada muestra
+estimar el promedio, mediana y luego ver los intervalos de confianza del 95%
+
+# Intervalos de confianza: se puede mostrar con argumentos matemáticmo-estadísticos que:
+
+
+$$
+ P(\overline{X}_{0.975} \leq \mu \leq \overline{X}_{0.975}) = 0.95
+$$
+En otras palabras que la probabilidad de que la media esté cubierto por este intervalo es del 95%
+
+
+
+```{r}
+n_simulaciones_bootstrap <- 1000
+n <- length(muestra)
+
+promedio_boot <- rep(NA_real_, n_simulaciones_bootstrap)
+
+set.seed(12345)
+for(i in 1:n_simulaciones_bootstrap){
+  muestra_boot <- muestra[sample(1:n, length(muestra), replace = TRUE)]
+  promedio_boot[i] <- mean(muestra_boot)
+}
+```
+
+Esta distribución que se observa es una aproximación de la distribución de $\overline{X}$:
+
+```{r}
+hist(promedio_boot, xlab = "Promedios bootstrap", main = "Histograma de distribución muestral (aprox. por Boostrap")
+```
+
+
+El intervalo del 95%
+
+```{r}
+IC <- c(quantile(promedio_boot, 0.025), quantile(promedio_boot, 0.975))
+names(IC) <- c("LI", "LS")
+print(IC)
+```
+
+
+
+El intervalo del 90%
+
+```{r}
+IC <- c(quantile(muestra_boot, 0.05), quantile(muestra_boot, 0.95))
+names(IC) <- c("LI", "LS")
+print(IC)
+```
+
+
+
+Ejercicio: 
+
+1. calcular un intervalo del 90% para la mediana
+2. Calcular el intervalo del 99% para el coeficiente de variación
