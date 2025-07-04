@@ -1,0 +1,180 @@
+---
+title: "Clase17"
+output: html_document
+date: "2025-07-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Estimación puntual
+
+
+Parametro poblacional: son cantidades fijas, no aleatorias que se requieren para entender el comportamiento de una distribución de probabilidad
+
+
+
+
+$$
+Y \sim N(\mu, \sigma^2) 
+
+P(Y;\mu, \sigma^2) = \frac{1}{\sqrt{2\pi}\sigma}exp\left(-\frac{1}{2\sigma^2}(x-\mu)^2\right)
+
+$$
+
+
+Ejemplo 2:
+
+
+$$
+P(Y;\lambda) = \frac{e^{-\lambda}\lambda^y}{y!} 
+
+$$
+
+lambda: tasa
+
+$$
+P(Y;p) = p^y(1-p)^{1-y}\newline y \in 0, 1
+
+$$
+
+
+# Metodos de estimación:
+
+1. Método de momentos
+2. Metodo de máxima verosimilitud
+
+
+# Método de momentos
+
+- Se puede estimar el $E(Y)$ con el promedio muestral ($\overline{x}$)
+- Se puede estimar la varianza de la distribución de probabilidad con $S^2$ 
+
+
+Ejemplo:
+
+EN la normal:
+$$
+E(Y) = \mu
+$$
+
+Luego, $$\hat \mu = \overline{x}$$
+
+
+Tambiénse tiene que $$V(Y) = E[(Y-\mu)^2] = \sigma^2$$
+
+
+
+Luego  $$\hat\sigma^2 = S^2$$ 
+
+
+Ejemplo 2: Poisson
+
+
+$$
+\mu = E(Y) = \lambda
+$$
+
+Luego: $$\hat \lambda = \overline{x}$$
+
+
+
+
+Ejemplo 3: Exponencial
+
+
+$$
+\mu = E(Y) = \frac{1}{\lambda}
+$$
+
+
+
+$$
+\frac{1}{\hat\lambda} = {\overline{x}
+
+$$
+
+
+Luego lambda lo estimo como como 1 sobre el promedio muestral, es decir:
+
+$$
+\hat\lambda = \frac{1}{\overline{x}} 
+$$
+
+
+Ejemplo: muestra de tamaño 7, estimar el gasto del hogar:
+
+
+
+```{r}
+nombres <- c(
+  "Alvaro Romero",
+  "carlos pineda",
+  "Daniela rocha",
+  "Diana Milena Ochoa Cardona",
+  "Hector Alvarado",
+  "Jorge Isaac Nieto Rojas",
+  "Juan Fernando Jiménez",
+  "Juan Manuel Riaño",
+  "Lina Sanchez",
+  "Olga Lucía Sandoval",
+  "Paola Canticus"
+)
+set.seed(12345)
+nombres_muestra <- sample(nombres, 7)
+
+```
+
+
+```{r}
+gasto_hogar <- c(1500000, NA, 1200000, 4000000, 3454000, 3200000, 3000000 )
+```
+
+
+```{r}
+hist(gasto_hogar,probability = TRUE)
+```
+
+Estimar el alpha y theta de la distribución gamma:
+
+```{r}
+prom <- mean(gasto_hogar, na.rm = T)
+s <- sd(gasto_hogar, na.rm = T)
+print(c(prom, s))
+```
+
+```{r}
+alpha_estim <- (prom / s)^2
+theta_estim <- (s^2) /prom
+```
+
+
+
+
+```{r}
+y <- rgamma(n = 10000, shape = alpha_estim, scale  =  theta_estim)
+hist(y, probability = TRUE, col = "lightblue", border = "white",
+     main = "Distribución Gamma: Datos vs Teórica",
+     xlab = "Valores simulados", ylab = "Densidad")
+
+# Agregar curva teórica gamma
+curve(dgamma(x, shape = alpha_estim, scale = theta_estim),
+      col = "red", lwd = 2, add = TRUE)
+
+```
+
+
+
+
+
+Ejercicio2: 
+
+suponga que el peso de las mujeres se distribuye con media 160y desviación de 7.2, y saco estra muestra de tamaño 384, estime los parametros de la normal $\mu$ y $\signa^2$
+
+```{r}
+set.seed(12345)
+estaturas_m <- rnorm(384, mean =160, sd = 7.2)
+datos <- data.frame(1:384, estaturas_m)
+```
+
