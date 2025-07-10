@@ -1,0 +1,303 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-07-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Sesgo (Bias)
+
+$$
+B = E(\hat\theta) - \theta
+$$
+
+Ejemplo: en una normal, cual es el sesgo de Xbarra y de la mediana
+
+$$
+B( \hat{\overline{X}}) = E(\hat{\overline{X}})-\mu =\mu-\mu = 0
+$$
+
+
+$$
+B( \hat{\overline{X}}) = E(m)-\mu =\mu-\mu = 0
+$$
+Ejemplo: cual es el sesggo de la mediana en una distriucion exponencial
+
+
+$$
+B(M) = E(M) - \lambda = ln(2) / \lambda - \lambda
+$$
+
+
+
+Recuerden que E(X) = 1/lambda
+
+
+Calcular el sesgo del promedio para una exponcial
+
+$$
+B(1/\hat{\overline{X}}) = E(1/\hat{\overline{X}}) - \lambda = \frac{n\lambda}{n-1}-\lambda \approx 0
+$$
+
+
+
+
+
+$$
+S^2_n = \frac{1}{n}\sum_{i=1}^n{(x_i-\overline{x})^2}
+
+$$
+
+
+Cual es el sego:
+
+
+$$
+B(S^2_n) = E(S_n^2)-\sigma^2 = \frac{n-1}{n}\sigma^2-\sigma = \sigma^2(\frac{n-1}{n}-1)
+=\sigma^2(\frac{n-1-n}{n})=\frac{-1}{n}\sigma^2
+
+$$
+
+# Varianza
+
+Tenemos una distribucion población del ingreso con media de 2.000.000 y desivación estandar de 1.800.000.
+
+Calcule la varianza del promedio muestral cuando el tamaño de muestra es 10, 100, 400, 1000 
+
+```{r}
+mu <- 2000000
+sigma <- 1800000
+
+n <- c(10, 100, 400, 1000)
+sigma_estimador <- sigma / sqrt(n)
+sigma_estimador
+```
+
+
+
+
+
+
+```{r}
+options(scipen = 9999)
+set.seed(12345)
+ingreso <- rexp(n = 4000, rate = 1/2000000) 
+summary(ingreso)
+```
+
+```{r}
+hist(ingreso)
+```
+
+
+$$
+\overline{x}-t_{1-\alpha/2, n-1}\frac{s}{\sqrt{n}}, \overline{x}+t_{1-\alpha/2, n-1}\frac{s}{\sqrt{n}}
+$$
+
+
+```{r}
+t.test(x = ingreso, conf.level = 0.95)
+```
+
+
+```{r}
+t.test(x = ingreso)
+```
+
+```{r}
+intervalos <- t.test(x = ingreso)
+c(intervalos$conf.int[1], intervalos$conf.int[2])
+
+```
+
+
+```{r}
+xbarra <- mean(ingreso)
+s <- sd(ingreso)
+n <- length(ingreso)
+
+confianza <- 0.95
+alpha <- 1 - confianza # error 
+
+t_perc <- qt(1-alpha/2, n-1)
+
+c(xbarra - t_perc * s / sqrt(n), xbarra, xbarra + t_perc * s / sqrt(n))
+```
+
+
+$$
+\overline{x}-t_{1-\alpha/2, n-1}\frac{s}{\sqrt{n}}, \overline{x}+t_{1-\alpha/2, n-1}\frac{s}{\sqrt{n}}
+$$
+
+
+
+$$
+\hat{p} \pm z_{1-\alpha/2} \cdot \sqrt{ \frac{ \hat{p}(1 - \hat{p}) }{n} }
+$$
+
+
+```{r}
+set.seed(12345)
+votacion <- rbinom(n = 1200, size = 1, prob = 0.4)
+table(votacion)
+```
+
+
+```{r}
+prop.test(x = sum(votacion), n = length(votacion), correct = FALSE)
+```
+```{r}
+inter_confianza <- prop.test(x = sum(votacion), n = length(votacion), correct = FALSE)
+inter_confianza$conf.int
+
+```
+
+
+```{r}
+pgorro <- sum(votacion) / length(votacion)
+confianza <- 0.95
+alpha <- 1 - confianza
+z <- qnorm(1-alpha/2)
+error_estandar <- sqrt(pgorro * (1-pgorro) / n)
+li <- pgorro - z * error_estandar
+ls <- pgorro + z * error_estandar
+c(li, pgorro, ls)
+
+
+```
+
+
+$$
+\hat{p} \pm z_{1-\alpha/2} \cdot \sqrt{ \frac{ \hat{p}(1 - \hat{p}) }{n} }
+$$
+
+Con correccion de Yates:
+
+
+```{r}
+inter_confianza <- prop.test(x = sum(votacion), n = length(votacion), correct = T)
+inter_confianza
+```
+
+Ver formula.
+
+
+
+
+# Diferencia de medias para dos poblaciones
+
+Se tienen 3.300 cerdos, para probar si un suplmento nuevo es mejor que uno viejo se seleccionan aleatoriamente 100 cerdos para el suplmento nuevo y 98 para el suplmento viejo. Se mide la variable hemoglobina que se mide en milg/decilitro
+
+
+
+¿Como se seleccionan aleatoriamente a un grupo 2 (nuevo) y a un grupo 1 (viejo)
+
+Poblacion al principio:
+
+```{r}
+set.seed(12345)
+datos <- data.frame(id = paste0("cerdo", 1:3300), 
+                    hemoglobina = rnorm(n = 3300, mean = 13, sd = 1.5) )
+head(datos)
+```
+
+
+
+Suponga que seleccionamos una muestra de tamaño 100 y 98
+
+```{r}
+set.seed(12345)
+aleatorio <- runif(n = 3300)
+datos$aleatorio <- aleatorio
+head(datos)
+```
+
+Los 100 van a ir al nuevo suplemento (grupo 2), los 101 al 198 al segundo suplmento (viejo, grupo 1)
+
+
+```{r}
+datos <- datos %>% arrange(aleatorio)
+muestra2 <- datos[1:100,]
+set.seed(12345)
+muestra2$hemoglobina <- muestra2$hemoglobina + 
+                        rnorm(n = nrow(muestra2), mean = 4, sd = 2.5)
+
+muestra1 <- datos[101:198,]
+cat("\n resumen muestra2: nuevo suplemento \n")
+summary(muestra2$hemoglobina)
+cat("\n resumen muestra1; grupo control")
+summary(muestra1$hemoglobina)
+
+```
+
+
+Calcular el intervalo de confianza para la diferencia de medias.
+
+Primero calculemos la estimación puntual (con las dos muestral):
+
+```{r}
+17.74 - 12.87
+```
+
+-1.87, 4,87, 9.87 Este diria que no es mejor el tratamiento 2 que el tratamiento 1
+
+2.87, 4.87, 6.87 ???
+
+```{r}
+t.test(x = muestra2$hemoglobina, y = muestra1$hemoglobina, conf.level = 0.95)
+```
+
+
+```{r}
+intervaloconf <- t.test(x = muestra2$hemoglobina, y = muestra1$hemoglobina, conf.level = 0.95)
+c(intervaloconf$conf.int[1], mean(muestra2$hemoglobina) - mean(muestra1$hemoglobina),
+intervaloconf$conf.int[2])
+
+```
+
+
+
+```{r}
+# Deidaad
+n <- 100000
+set.seed(12345)
+compra <- rbinom(n, size = 1, prob = 0.01)
+head(compra, 200)
+```
+
+
+```{r}
+# Muesra
+set.seed(12345)
+aleatorio <- runif(100000)
+compra <- compra[order(aleatorio)]
+set.seed(12345)
+compra1 <- compra[1:50000] + rbinom(n = 50000, size = 1, prob = 0.2 / 100)
+
+
+# diseño nuevo 
+compra2 <- compra[50001:100000]# diseño viejo 
+cat("Proporciones muestral  poblacion 1 \n")
+
+table(compra1) %>% proportions()
+cat("Proporciones muestral poblacion 2 \n")
+table(compra2) %>% proportions()
+```
+
+```{r}
+exitos <- c(table(compra1)[2], table(compra2)[2])
+tamanos <- c(length(compra1), length(compra2))
+list(tamanos, exitos)
+
+```
+
+
+```{r}
+prop.test(x = exitos, tamanos, conf.level = 0.95)
+```
+
+
