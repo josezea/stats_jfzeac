@@ -1,0 +1,805 @@
+---
+title: "Clase 25: Supuestos de una regresión lineal"
+output: html_document
+date: "2025-07-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# ***Análisis de Datos y Big data***
+
+## ***Universidad Central***
+>## **Dirección de Educación Continua.**
+
+
+
+![Imágen1](https://www.ucentral.edu.co/sites/default/files/logo_1.png)
+
+
+
+# ***Linear Regression***b
+
+
+```{r}
+# Cargar las librerías necesarias
+# Si no las tienes instaladas, ejecuta: install.packages(c("dplyr", "ggplot2", "lmtest", "car", "tseries", "sandwich", "MASS"))
+
+library(dplyr)
+library(ggplot2)
+library(lmtest) # Para bptest, resettest, dwtest
+library(car)    # Para vif
+library(tseries)# Para jarque.bera.test
+library(sandwich) # Para vcovHC (errores robustos)
+library(MASS)   # Para boxcox
+
+# Configuraciones de visualización
+theme_set(theme_dark()) # Equivalente a sns.set_style("darkgrid")
+options(repr.plot.width = 15, repr.plot.height = 6) # Equivalente a plt.rcParams
+options(warn = -1) # Suprime advertencias, equivalente a warnings.filterwarnings("ignore")
+
+# URL base para los datos
+url_base <- "https://raw.githubusercontent.com/jazaineam1/Diplomado_ucentral_ME/refs/heads/main/Datos/"
+```
+
+# Supuestos de los Modelos de Regresión Lineal
+
+Los modelos de regresión lineal, para ser válidos y para que sus inferencias estadísticas (como los intervalos de confianza y las pruebas de hipótesis sobre los coeficientes) sean fiables, se basan en una serie de supuestos sobre los datos y, más específicamente, sobre los **errores** del modelo.
+
+## ¿Qué es un Error (o Residuo)?
+
+En el contexto de la regresión, un **error** (a menudo llamado **residuo** cuando se calcula a partir de los datos de la muestra) es la diferencia entre el valor observado de la variable dependiente ($y_i$) y el valor predicho por el modelo de regresión ($\hat{y}_i$).
+
+$e_i = y_i - \hat{y}_i$
+
+Los errores representan la variabilidad en la variable dependiente que el modelo de regresión no logra explicar. Son una medida de cuán bien se ajusta el modelo a los datos.
+
+## ¿Por qué se revisan los supuestos sobre los errores?
+
+Las propiedades estadísticas deseadas de los estimadores de los coeficientes de regresión (como ser insesgados y eficientes) y la validez de las pruebas de significancia e intervalos de confianza dependen de que estos supuestos sobre los errores se cumplan. Si los supuestos se violan, las conclusiones extraídas del modelo pueden ser incorrectas o engañosas.
+
+## Supuestos Clave de la Regresión Lineal:
+
+1.  **Linealidad:**
+    *   **Supuesto:** La relación entre las variables independientes (predictoras) y la variable dependiente es lineal. Esto significa que el cambio en la variable dependiente por un cambio unitario en una variable independiente es constante, manteniendo las demás variables fijas.
+    *   **Cómo verificarlo:**
+        *   **Gráficos de dispersión:** Graficar la variable dependiente contra cada variable independiente. Se debería observar una tendencia lineal.
+        *   **Gráfico de residuos vs. valores ajustados (predichos):** Si el modelo es lineal, los residuos deberían distribuirse aleatoriamente alrededor de la línea horizontal cero, sin patrones evidentes (por ejemplo, una forma de U o una curva).
+        *   **Gráficos de regresión parcial (Partial Regression Plots) o Added Variable Plots:** Muestran la relación entre una variable independiente y la variable dependiente, después de controlar el efecto de las otras variables independientes. Deberían mostrar una relación lineal.
+    *   **Consecuencias de la violación:** Los coeficientes estimados pueden ser sesgados y las predicciones del modelo no serán precisas.
+
+2.  **Independencia de los Errores (No Autocorrelación):**
+    *   **Supuesto:** Los errores (residuos) son independientes entre sí. Es decir, el valor de un error no está correlacionado con el valor de ningún otro error. Este supuesto es particularmente importante para datos de series temporales.
+    *   **Cómo verificarlo:**
+        *   **Gráfico de residuos vs. orden de observación (o tiempo):** No debería haber patrones cíclicos o sistemáticos. Los puntos deben parecer aleatorios.
+        *   **Prueba de Durbin-Watson:** Es una prueba formal para detectar autocorrelación de primer orden. Un valor cercano a 2 indica no autocorrelación. Valores significativamente menores a 2 sugieren autocorrelación positiva, y mayores a 2, autocorrelación negativa.
+        *   **Función de Autocorrelación (ACF) de los residuos:** Grafica la correlación de los residuos con sus propios retardos. Para independencia, las autocorrelaciones deberían caer rápidamente dentro de las bandas de confianza (cerca de cero).
+    *   **Consecuencias de la violación:** Los errores estándar de los coeficientes pueden estar subestimados, lo que lleva a intervalos de confianza demasiado estrechos y a valores p incorrectamente pequeños (mayor probabilidad de rechazar la hipótesis nula cuando es verdadera).
+
+3.  **Homocedasticidad (Varianza Constante de los Errores):**
+    *   **Supuesto:** La varianza de los errores es constante para todos los niveles de las variables independientes. Es decir, la dispersión de los residuos es la misma a lo largo de la línea de regresión.
+    *   **Cómo verificarlo:**
+        *   **Gráfico de residuos vs. valores ajustados (predichos):** Los residuos deben mostrar una dispersión uniforme alrededor de la línea cero, sin forma de embudo (heterocedasticidad) o abanico.
+        *   **Gráfico de residuos vs. variables independientes:** Similar al anterior, se busca una dispersión constante.
+        *   **Prueba de Breusch-Pagan:** Prueba formal para la homocedasticidad. La hipótesis nula es que la varianza de los errores es constante.
+        *   **Prueba de White:** Otra prueba formal, más general que la de Breusch-Pagan, ya que no asume una forma específica de heterocedasticidad.
+    *   **Consecuencias de la violación (Heterocedasticidad):** Los estimadores de los coeficientes siguen siendo insesgados, pero ya no son los de mínima varianza (no son eficientes). Los errores estándar de los coeficientes son sesgados, lo que invalida las pruebas t, pruebas F e intervalos de confianza.
+
+4.  **Normalidad de los Errores:**
+    *   **Supuesto:** Los errores se distribuyen normalmente, con media cero. (La media cero se garantiza si el modelo incluye un intercepto y se estima por mínimos cuadrados ordinarios).
+    *   **Cómo verificarlo:**
+        *   **Histograma de los residuos:** Debería asemejarse a una distribución normal (forma de campana).
+        *   **Gráfico Q-Q (Quantile-Quantile plot) de los residuos:** Los puntos deberían caer aproximadamente sobre una línea recta si los residuos son normales. Desviaciones sistemáticas de la línea indican no normalidad.
+        *   **Pruebas de normalidad formales:**
+            *   **Prueba de Shapiro-Wilk:** Adecuada para muestras pequeñas.
+            *   **Prueba de Kolmogorov-Smirnov (con corrección de Lilliefors):** Otra prueba común.
+            *   **Prueba de Jarque-Bera:** Basada en la asimetría y curtosis de los residuos.
+    *   **Consecuencias de la violación:** Si los errores no son normales, especialmente en muestras pequeñas, las pruebas de hipótesis (pruebas t y F) y los intervalos de confianza para los coeficientes pueden no ser fiables. Sin embargo, para muestras grandes, el Teorema del Límite Central puede implicar que los estimadores de los coeficientes se distribuyen aproximadamente de forma normal, incluso si los errores no lo hacen.
+
+5.  **No Multicolinealidad Perfecta (para regresión múltiple):**
+    *   **Supuesto:** Las variables independientes no están perfectamente correlacionadas entre sí. Idealmente, tampoco deberían estar altamente correlacionadas (multicolinealidad imperfecta pero fuerte).
+    *   **Cómo verificarlo:**
+        *   **Matriz de correlación entre variables independientes:** Buscar coeficientes de correlación altos (cercanos a +1 o -1).
+        *   **Factor de Inflación de la Varianza (VIF - Variance Inflation Factor):** Mide cuánto se infla la varianza de un coeficiente de regresión estimado debido a la colinealidad.
+            *   Un VIF de 1 indica no colinealidad.
+            *   VIF > 5 es motivo de preocupación.
+            *   VIF > 10 sugiere multicolinealidad problemática.
+            *   La tolerancia (1/VIF) es otra medida; valores bajos indican problemas.
+    *   **Consecuencias de la violación:**
+        *   **Multicolinealidad perfecta:** El modelo no se puede estimar.
+        *   **Multicolinealidad alta (imperfecta):**
+            *   Errores estándar de los coeficientes de regresión muy grandes, lo que dificulta determinar la significancia estadística de las variables individuales.
+            *   Estimaciones de los coeficientes inestables y sensibles a pequeños cambios en los datos o en la especificación del modelo.
+            *   Puede ser difícil interpretar el efecto individual de las variables colineales.
+            *   A pesar de esto, el modelo general (R² y predicciones) puede seguir siendo bueno.
+
+Es crucial verificar estos supuestos después de ajustar un modelo de regresión para asegurar la validez y fiabilidad de sus resultados. Si se violan los supuestos, pueden ser necesarias transformaciones de variables, el uso de métodos de regresión robustos, o la reconsideración de la especificación del modelo.
+
+| # | Supuesto                          | Formulación (pop.)                                   | Prueba clásica                               | $H_0$                     | $H_1$                   | Consecuencias si $H_0$ se rechaza |
+| - | --------------------------------- | ---------------------------------------------------- | -------------------------------------------- | ------------------------- | ----------------------- | --------------------------------- |
+| 1 | **Linealidad**                    | $E[y\mid X]=X\beta$                                  | Gráfico residuales-ajustados, *Ramsey RESET* | No falta non-linearidad   | Hay relación no lineal  | Sesgo en $\hat\beta$              |
+| 2 | **Independencia**                 | $ \operatorname{Cov}(\varepsilon_i,\varepsilon_j)=0$ | Durbin–Watson, Ljung-Box                     | Errores no autocorrelados | Autocorrelación         | EE sub/over                       |
+| 3 | **Homoscedasticidad**             | Var$(\varepsilon_i)=\sigma^2$                        | Breusch–Pagan, White                         | Varianza constante        | Varianza depende de $X$ | Tests t/F inválidos               |
+| 4 | **Normalidad** (solo p << 30)     | $\varepsilon_i\sim N(0,\sigma^2)$                    | Jarque–Bera, Shapiro                         | Errores normales          | Distrib. distinta       | T-IC inexactos                    |
+| 5 | **No multicolinealidad perfecta** | $\operatorname{rank}(X)=k$                           | VIF, condición                               | VIF bajos                 | Colinealidad alta       | EE inflados, inestab.             |
+
+
+
+# ***¿Cómo debemos fijar el precio de inmuebles en Seattle?***
+
+## ***Objetivos.***
+
+
+En una lectura anterior, aprendimos cómo la regresión lineal puede ser una herramienta poderosa para comprender el comportamiento de una variable de interés en relación con otras variables en nuestro conjunto de datos. Sin embargo, en muchas situaciones de la vida real, es posible que nuestros datos no cumplan con los supuestos básicos que se necesitan para que un modelo de regresión lineal sea adecuado. En los casos en que la regresión lineal no sea *directamente* aplicable, en estos escenarios debemos descubrir cómo solucionar este problema.
+
+Vamos a abordar:
+
+1. Cómo seleccionar y usar las transformaciones de variables apropiadas para corregir nuestros datos de modo que sean adecuados para aplicar la regresión lineal
+2. Cómo decidir si las variables independientes adicionales realmente benefician al modelo
+3. Cómo ampliar aún más la aplicabilidad de los modelos lineales teniendo en cuenta las interacciones que pueden existir entre las variables independientes
+
+
+
+### ***Introducción***
+
+El Dataset se obtuvo de [`Kaggle`](https://www.kaggle.com/harlfoxem/housesalesprediction) e incluye precios de venta de casas en el estado de Washington (condado de King, donde se encuentra Seattle) entre mayo de 2014 y mayo de 2015.
+
+Vamos a crear un modelo que use como variable target el precio de venta (`price`) y  como las features las características de los predios. Todo basado en ventas anteriores en Seattle para recomendar un precio de venta óptimo.
+
+
+```{r}
+# Cargar los datos
+file_url <- paste0(url_base, "kc_house_data.csv")
+houses <- read.csv(file_url)
+
+# Copiar y limpiar el dataframe
+df <- houses
+
+# Eliminar columnas no deseadas usando dplyr
+df <- df %>%
+  dplyr::select(-id, -sqft_living15, -sqft_lot15)
+
+# Mostrar la estructura del dataframe (equivalente a df.info())
+glimpse(df)
+```
+
+
+```{r}
+# Definir la fórmula del modelo
+# La sintaxis de la fórmula en R es muy similar a la de statsmodels en Python
+formula_0 <- log(price) ~ sqft_living + bedrooms + bathrooms + floors + grade + sqft_lot
+
+# Ajustar el modelo de regresión lineal (OLS)
+model_0 <- lm(formula_0, data = df)
+
+# Mostrar el resumen del modelo
+summary(model_0)
+```
+
+
+
+
+```{r}
+# 2.1 Linealidad / especificación ---------------------------
+# Prueba RESET de Ramsey para errores de especificación
+# 'type = "fitted"' usa las potencias de los valores ajustados como regresores
+reset_test_result <- resettest(model_0, power = 2, type = "fitted")
+
+# Imprimir el p-valor
+cat(paste("\nRESET (linealidad) p-value:", format(reset_test_result$p.value, scientific = TRUE, digits = 4)))
+```
+
+
+La salida `RESET (linealidad) p-value: 1.597e-14` se interpreta de la siguiente manera:
+
+La prueba RESET (Regression Equation Specification Error Test) se utiliza para detectar problemas de especificación en un modelo de regresión, particularmente la omisión de términos no lineales.
+
+*   **Hipótesis Nula ($H_0$)**: El modelo está correctamente especificado (es decir, la relación funcional entre las variables independientes y la variable dependiente es lineal, tal como se ha modelado).
+*   **Hipótesis Alternativa ($H_1$)**: El modelo está incorrectamente especificado (es decir, existen no linealidades que no han sido capturadas por el modelo).
+
+En este caso, el p-valor obtenido es `1.597e-14` (o 0.00000000000001597). Este valor es extremadamente pequeño, mucho menor que los niveles de significancia comunes (como 0.05, 0.01 o 0.001).
+
+**Conclusión:**
+Dado que el p-valor es muy bajo, se rechaza la hipótesis nula. Esto sugiere fuertemente que el modelo, tal como está especificado actualmente (`np.log(price) ~ sqft_living + bedrooms + bathrooms + floors + grade + sqft_lot`), sufre de una incorrecta especificación, probablemente debido a la omisión de relaciones no lineales relevantes. En otras palabras, la relación entre las variables predictoras y el logaritmo del precio no es puramente lineal como asume el modelo. Sería necesario considerar transformaciones adicionales de las variables o la inclusión de términos polinómicos o de interacción para mejorar la especificación del modelo.
+
+
+```{r}
+
+# Crear un dataframe con los valores ajustados y los residuos
+residuals_df <- data.frame(
+  Fitted = fitted(model_0),
+  Residuals = resid(model_0)
+)
+
+# Graficar con ggplot2
+ggplot(residuals_df, aes(x = Fitted, y = Residuals)) +
+  geom_point(alpha = 0.3) +
+  geom_hline(yintercept = 0, color = "black") +
+  labs(
+    x = "Fitted",
+    y = "Residuals",
+    title = "Residuos vs Ajustados — Modelo 0")
+```
+
+
+## Explicación del Gráfico: Residuos vs. Ajustados (Modelo 0)
+
+El gráfico generado ("Residuos vs Ajustados — Modelo 0") es una herramienta de diagnóstico fundamental para evaluar la adecuación de un modelo de regresión lineal. En este gráfico:
+
+*   **Eje X (Fitted values / Valores Ajustados):** Representa los valores predichos de la variable dependiente ($\hat{y}_i$) por el modelo.
+*   **Eje Y (Residuals / Residuos):** Representa las diferencias entre los valores observados y los valores predichos ($e_i = y_i - \hat{y}_i$).
+*   **Línea Horizontal en Cero:** Sirve como referencia. Idealmente, los residuos deberían distribuirse aleatoriamente alrededor de esta línea.
+
+**¿Qué buscamos en este gráfico?**
+
+1.  **Linealidad:** Si la relación entre las variables predictoras y la variable dependiente es lineal (como asume el modelo), los residuos deberían dispersarse aleatoriamente alrededor de la línea horizontal cero, sin mostrar ningún patrón sistemático o curvilíneo.
+2.  **Homocedasticidad (Varianza Constante de los Errores):** La dispersión vertical de los residuos debería ser aproximadamente la misma a lo largo de todo el rango de los valores ajustados. Si la dispersión aumenta o disminuye a medida que cambian los valores ajustados (formando un embudo o abanico), esto indica heterocedasticidad (varianza no constante).
+
+**Interpretación del Gráfico Específico (Modelo 0):**
+
+Observando el gráfico "Residuos vs Ajustados — Modelo 0":
+
+*   Los puntos no parecen estar distribuidos de manera completamente aleatoria alrededor de la línea horizontal en cero.
+*   Se puede percibir una ligera **curvatura** o un patrón sistemático en los residuos. Por ejemplo, los residuos tienden a ser más negativos para valores ajustados bajos y altos, y más positivos para valores ajustados intermedios, o alguna otra forma no aleatoria.
+
+**Conclusión basada en el gráfico:**
+
+La presencia de un patrón (como una curva) en el gráfico de residuos vs. ajustados sugiere que el supuesto de **linealidad** podría no cumplirse. Esto significa que el modelo lineal actual podría no estar capturando adecuadamente la relación entre las variables predictoras y el logaritmo del precio.
+
+Esta observación visual es consistente con el resultado de la **prueba RESET** (p-valor: `1.597e-14`), la cual indicó una incorrecta especificación del modelo debido, probablemente, a la omisión de relaciones no lineales. El gráfico de residuos proporciona una evidencia visual que respalda esta conclusión.
+
+Aunque el principal problema que se destaca es la no linealidad, este tipo de gráfico también ayuda a evaluar la homocedasticidad. Si bien no hay una forma de embudo extremadamente obvia, la posible no linealidad complica la evaluación clara de la homocedasticidad a partir de este gráfico únicamente. Corregir la no linealidad a menudo es el primer paso antes de reevaluar la homocedasticidad.
+
+
+```{r}
+
+# 2.2 Multicolinealidad -------------------------------------
+# La función vif() del paquete 'car' calcula el VIF para todas las variables
+vif_results <- vif(model_0)
+print("VIF:")
+print(vif_results)
+```
+
+
+## Explicación del Factor de Inflación de la Varianza (VIF)
+
+El **Factor de Inflación de la Varianza (VIF)** es una medida utilizada para detectar la multicolinealidad en un modelo de regresión múltiple. La multicolinealidad ocurre cuando dos o más variables predictoras (independientes) en el modelo están altamente correlacionadas entre sí.
+
+**¿Qué mide el VIF?**
+
+Para cada variable predictora en el modelo, el VIF cuantifica cuánto se infla la varianza de su coeficiente de regresión estimado debido a su correlación con las otras variables predictoras en el modelo.
+
+Conceptualmente, para una variable predictora $X_j$, su VIF se calcula como:
+$VIF_j = \frac{1}{1 - R_j^2}$
+donde $R_j^2$ es el coeficiente de determinación de una regresión de $X_j$ sobre todas las demás variables predictoras.
+
+*   Si $R_j^2$ es cercano a 0 (es decir, $X_j$ no está muy correlacionada con las otras predictoras), el VIF será cercano a 1.
+*   Si $R_j^2$ es cercano a 1 (es decir, $X_j$ está altamente correlacionada con las otras predictoras), el VIF será muy grande.
+
+**Interpretación de los valores del VIF:**
+
+No hay un umbral estricto, pero se suelen seguir estas directrices generales:
+
+*   **VIF = 1:** No hay multicolinealidad para esa variable. La variable no está correlacionada con ninguna otra predictora en el modelo.
+*   **1 < VIF < 5:** Generalmente se considera que hay un nivel bajo a moderado de multicolinealidad, que a menudo no es problemático.
+*   **VIF ≥ 5:** Indica un nivel de multicolinealidad que podría ser preocupante. Los errores estándar de los coeficientes de regresión pueden estar inflados, lo que dificulta la evaluación de la significancia individual de las variables.
+*   **VIF ≥ 10:** Generalmente se considera un signo de multicolinealidad seria, lo que sugiere que las estimaciones de los coeficientes pueden ser inestables y poco fiables.
+
+
+```{r}
+# 2.3 Observaciones influyentes ------------------------------
+# Calcular la distancia de Cook para cada observación
+cooks_d <- cooks.distance(model_0)
+
+# Encontrar el valor máximo
+cook_max <- max(cooks_d)
+cat(paste("\nMáx Cook's D:", format(cook_max, digits = 4)))
+
+```
+
+
+## Explicación del valor máximo de la Distancia de Cook
+
+La salida **`Máx Cook's D: 0.1664`** se refiere al valor máximo de la Distancia de Cook (Cook's D) en tu modelo.
+
+**Interpretación del resultado:**
+
+La Distancia de Cook mide la influencia de cada observación individual en los coeficientes estimados del modelo. Un valor alto indica que esa observación tiene un impacto desproporcionado en los resultados. Se suelen considerar dos umbrales principales:
+
+1.  **$D_i > 4/n$**: Donde $n$ es el número de observaciones. Las observaciones que superan este umbral merecen una investigación más detallada.
+    *   En tu caso, $n = 21613$.
+    *   Por lo tanto, $4/n = 4 / 21613 \approx 0.000185$.
+    *   Tu valor `cook_max` de `0.1664` es **significativamente mayor** que este umbral.
+
+2.  **$D_i > 1$**: Las observaciones que superan este umbral se consideran altamente influyentes y pueden distorsionar gravemente los resultados del modelo.
+    *   Tu valor `cook_max` de `0.1664` es **menor** que 1.
+
+**Conclusión sobre la influencia:**
+
+El hecho de que el `cook_max` (0.1664) supere el umbral de $4/n$ sugiere que hay al menos una observación (y posiblemente más) que ejerce una influencia considerable en tu modelo. Aunque no alcanza el nivel de "altamente influyente" (D > 1), estas observaciones tienen un impacto desproporcionado en las estimaciones de los coeficientes en comparación con la mayoría de los otros puntos de datos.
+
+**¿Qué debes hacer?**
+
+Dado que existen puntos con influencia notable, es recomendable investigar más a fondo:
+
+1.  **Identificar las Observaciones Influyentes:** No solo te fijes en el máximo. Obtén una lista o un gráfico de las Distancias de Cook para todas las observaciones e identifica todas aquellas cuyo Cook's D supere el umbral de $4/n$.
+
+2.  **Examinar las Observaciones Identificadas:** Revisa estas observaciones en tu conjunto de datos original. Pregúntate:
+    *   ¿Son errores de entrada de datos (p. ej., un precio incorrecto, un área desproporcionada)?
+    *   ¿Representan casos genuinos pero atípicos o extremos (p. ej., una propiedad única, una venta bajo circunstancias especiales)?
+
+3.  **Tomar Decisiones:**
+    *   **Si son errores:** Corrige los datos si es posible. Si no, considera eliminar estas observaciones y reajustar el modelo.
+    *   **Si son datos genuinos pero atípicos:**
+        *   **Considerar transformaciones:** A veces, transformar variables puede mitigar la influencia de puntos extremos.
+        *   **Usar modelos robustos:** La regresión robusta es menos sensible a observaciones atípicas.
+        *   **Mantener y reportar:** Si decides mantenerlas, es importante ser consciente de su influencia y mencionarlo al reportar los resultados.
+
+4.  **Reevaluar el Modelo:** Después de cualquier corrección, reajusta el modelo y vuelve a verificar todos los supuestos.
+
+
+```{r}
+# 2.4 Homoscedasticidad --------------------------------------
+# Prueba de Breusch-Pagan del paquete lmtest
+bp_test_result <- bptest(model_0)
+cat(paste("Breusch-Pagan p-value:", format(bp_test_result$p.value, scientific = TRUE, digits = 4)))
+```
+
+## Explicación de la Prueba de Breusch-Pagan (Homoscedasticidad)
+
+La salida `Breusch-Pagan p-value: 4.937e-55` se interpreta de la siguiente manera:
+
+La **prueba de Breusch-Pagan** se utiliza para detectar la **heterocedasticidad** en un modelo de regresión lineal. La heterocedasticidad ocurre cuando la varianza de los errores (residuos) no es constante a lo largo de todos los niveles de las variables independientes. El supuesto de **homoscedasticidad** (varianza constante de los errores) es crucial para la validez de las pruebas de significancia estándar (pruebas t y F) y los intervalos de confianza de los coeficientes de regresión.
+
+*   **Hipótesis Nula ($H_0$)**: Existe homocedasticidad (la varianza de los errores es constante).
+*   **Hipótesis Alternativa ($H_1$)**: Existe heterocedasticidad (la varianza de los errores no es constante y depende de al menos una de las variables independientes).
+
+En este caso, el p-valor obtenido es `4.937e-55` (un número extremadamente pequeño, prácticamente cero).
+
+**Conclusión:**
+Dado que el p-valor (`4.937e-55`) es mucho menor que cualquier nivel de significancia convencional (por ejemplo, 0.05, 0.01, 0.001), se **rechaza la hipótesis nula** de homocedasticidad.
+
+Esto indica que hay una fuerte evidencia de **heterocedasticidad** en el modelo. Es decir, la varianza de los errores del modelo no es constante, sino que varía con los niveles de las variables predictoras.
+
+**Consecuencias de la Heterocedasticidad:**
+*   Los estimadores de los coeficientes de regresión ($\hat\beta$) siguen siendo insesgados, pero ya no son los de mínima varianza (no son eficientes).
+*   Los errores estándar de los coeficientes de regresión están sesgados. Esto invalida las pruebas t, las pruebas F y los intervalos de confianza calculados de la manera usual.
+
+Para abordar este problema, se podrían considerar soluciones como:
+*   Transformar la variable dependiente (aunque ya se usó `np.log(price)`, podría explorarse más).
+*   Utilizar errores estándar robustos a la heterocedasticidad (por ejemplo, estimadores de White, Huber-White o HC0, HC1, etc.).
+*   Aplicar Mínimos Cuadrados Ponderados (WLS) si se conoce la forma de la heterocedasticidad.
+
+
+```{r}
+# 2.5 Normalidad ---------------------------------------------
+# Prueba de Jarque-Bera del paquete tseries
+jb_test_result <- jarque.bera.test(resid(model_0))
+cat(paste("Jarque-Bera  p-value:", format(jb_test_result$p.value, scientific = TRUE, digits = 4)))
+```
+
+
+## Explicación de la Prueba de Jarque-Bera (Normalidad de los Residuos)
+
+La salida `Jarque-Bera p-value: 1.087e-09` se interpreta de la siguiente manera:
+
+La **prueba de Jarque-Bera** es una prueba de bondad de ajuste para verificar si los datos de la muestra (en este caso, los residuos del modelo) tienen la asimetría (skewness) y la curtosis (kurtosis) que coinciden con una distribución normal.
+
+*   **Hipótesis Nula ($H_0$)**: Los residuos se distribuyen normalmente.
+*   **Hipótesis Alternativa ($H_1$)**: Los residuos no se distribuyen normalmente.
+
+En este caso, el p-valor obtenido es `1.087e-09` (un número extremadamente pequeño, mucho menor que 0.001).
+
+**Conclusión:**
+Dado que el p-valor (`1.087e-09`) es significativamente menor que los niveles de significancia comunes (por ejemplo, 0.05, 0.01), se **rechaza la hipótesis nula**.
+
+Esto indica que hay una fuerte evidencia de que los residuos del modelo **no siguen una distribución normal**.
+
+**Consecuencias de la No Normalidad de los Residuos:**
+*   **Muestras Pequeñas:** Si los errores no son normales y el tamaño de la muestra es pequeño, las pruebas de hipótesis (pruebas t y F) y los intervalos de confianza para los coeficientes de regresión pueden no ser fiables. Sus distribuciones teóricas (t y F) dependen del supuesto de normalidad.
+*   **Muestras Grandes:** Para muestras grandes (como es el caso aquí, con más de 21,000 observaciones), el Teorema del Límite Central a menudo entra en juego. Este teorema sugiere que los estimadores de los coeficientes de regresión ($\hat\beta$) tienden a distribuirse aproximadamente de forma normal, incluso si los errores originales no lo hacen. Por lo tanto, en muestras grandes, la violación del supuesto de normalidad de los errores suele ser menos preocupante para la validez de las inferencias sobre los coeficientes. Sin embargo, la no normalidad aún podría indicar otros problemas subyacentes en el modelo, como la omisión de variables importantes o una forma funcional incorrecta, que ya fueron señalados por la prueba RESET.
+
+Aunque la no normalidad es estadísticamente significativa, dado el gran tamaño de la muestra, su impacto en la fiabilidad de las pruebas t y F para los coeficientes podría ser limitado. No obstante, es una pieza más de evidencia que sugiere que el modelo actual podría beneficiarse de mejoras en su especificación.
+
+```{r}
+# 2.6 Independencia ------------------------------------------
+# Prueba de Durbin-Watson del paquete lmtest
+dw_test_result <- dwtest(model_0)
+cat(paste("Durbin-Watson statistic:", format(dw_test_result$statistic, digits = 4)))
+```
+
+## Explicación del Estadístico de Durbin-Watson (Independencia de los Errores)
+
+La salida `Durbin-Watson statistic: 1.976` se interpreta de la siguiente manera:
+
+El **estadístico de Durbin-Watson (DW)** se utiliza para detectar la presencia de **autocorrelación** en los residuos de un modelo de regresión. Este supuesto es particularmente importante para datos de series temporales, pero también puede ser relevante en datos de corte transversal si hay algún ordenamiento inherente en las observaciones.
+
+*   **Hipótesis Nula ($H_0$)**: No hay autocorrelación entre los residuos.
+*   **Hipótesis Alternativa ($H_1$)**: Existe autocorrelación.
+
+**Interpretación del valor del estadístico DW:**
+
+El estadístico varía entre 0 y 4:
+*   **DW ≈ 2:** Indica que no hay autocorrelación.
+*   **DW < 2 (hacia 0):** Sugiere autocorrelación positiva.
+*   **DW > 2 (hacia 4):** Sugiere autocorrelación negativa.
+
+Como regla general, valores entre 1.5 y 2.5 se consideran aceptables.
+
+**Conclusión para el Modelo Actual:**
+
+El estadístico de Durbin-Watson es `1.976`. Este valor está muy cerca de 2.0 y dentro del rango aceptable, lo que sugiere una **ausencia de autocorrelación de primer orden significativa** en los residuos del modelo. Por lo tanto, el supuesto de independencia de los errores parece cumplirse razonablemente bien.
+
+
+
+| Orden | Prueba (`R packages`)             | Hipótesis nula H₀                                          | Cómo leer el p-value                                                                                            |
+| ----- | --------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1     | `resettest` (`lmtest`)            | El modelo es lineal y no faltan potencias ni interacciones | **p > 0.05** ⇒ forma adecuada. **p ≤ 0.05** ⇒ agregar polinomios, logs o variables omitidas.                    |
+| 2     | `vif` (`car`)                     | No hay multicolinealidad grave                             | VIF < 10 (ideal < 5) = OK. Valores grandes ⇒ remover/comprimir variables.                                       |
+| 3     | `cooks.distance` (`stats`)        | Ningún punto influye excesivamente                         | Regla práctica: **Cook > 4/n** indica outlier influyente; considerar revisarlo o usar robust SE/WLS.            |
+| 4     | `bptest` (`lmtest`)               | Homoscedasticidad (Var(ε) constante)                       | **p > 0.05** ⇒ varianza constante; **p ≤ 0.05** ⇒ heteroscedasticidad ⇒ log/Box-Cox, WLS o SE robustas.         |
+| 5     | `jarque.bera.test` (`tseries`)    | Normalidad de errores                                      | **p > 0.05** ⇒ residuos \~ normales; **p ≤ 0.05** ⇒ asimetría/colas ⇒ transformar y o usar bootstrap/robust SE. |
+| 6     | `dwtest` (`lmtest`)               | No autocorrelación                                         | DW ≈ 2 indica independencia; valores ≪ 2 o ≫ 2 indican autocorrelación positiva o negativa.                     |
+
+
+Orden lógico: forma → estabilidad → outliers → varianza → distribución → dependencia.
+Corriges lo que falla y vuelves a correr las pruebas, avanzando secuencialmente hasta obtener un modelo cuyos supuestos estén (al menos) mitigados o tratados con métodos robustos.
+
+```{r}
+# 1. Datos y transformaciones usando dplyr::mutate
+df <- df %>%
+  mutate(
+    log_sqft = log(sqft_living),
+    log_lot = log(sqft_lot),
+    sqft2 = log_sqft^2,
+    grade2 = grade^2,
+    age = 2015 - yr_built,
+    age2 = age^2,
+    sqft_grade = log_sqft * grade,
+    renovated = as.integer(yr_renovated > 0)
+  )
+
+# Transformación de Box-Cox para la variable dependiente
+# La función boxcox de MASS ayuda a encontrar el lambda óptimo
+bc_result <- boxcox(df$price ~ 1, plotit = FALSE)
+lambda <- bc_result$x[which.max(bc_result$y)]
+
+# Aplicar la transformación con el lambda encontrado
+df$bc_price <- (df$price^lambda - 1) / lambda
+```
+
+
+```{r}
+# Definir la fórmula para el nuevo modelo
+formula_1 <- bc_price ~ log_sqft + sqft2 + bedrooms + bathrooms + floors +
+             waterfront + view + grade + grade2 + condition +
+             log_lot + sqft_grade + age + age2 + renovated
+```
+
+
+```{r}
+# 2. OLS preliminar para obtener los pesos
+ols_pre <- lm(formula_1, data = df)
+
+# Calcular los pesos. pmax es el equivalente a np.maximum
+weights <- 1 / pmax(fitted(ols_pre), 0.1)^2
+head(weights)
+```
+
+
+```{r}
+# 3. Ajustar el modelo WLS (Mínimos Cuadrados Ponderados)
+# y calcular errores estándar robustos HC3
+# Usaremos lm() con el argumento 'weights'
+wls_model <- lm(formula_1, data = df, weights = weights)
+
+# Para obtener un resumen con errores robustos, combinamos lmtest y sandwich
+# coeftest aplica la corrección de la matriz de covarianza (vcovHC)
+wls_summary_robust <- coeftest(wls_model, vcov = vcovHC(wls_model, "HC3"))
+
+# Para un resumen más completo similar al de Python, imprimimos varias partes:
+print("Resumen de Coeficientes WLS con Errores Robustos HC3")
+print(wls_summary_robust)
+
+cat("\n--- Estadísticas del Modelo ---\n")
+# R-cuadrado y otros estadísticos del modelo original wls_model
+summary_wls <- summary(wls_model)
+cat(paste("R-squared:", round(summary_wls$r.squared, 3), "\n"))
+cat(paste("Adj. R-squared:", round(summary_wls$adj.r.squared, 3), "\n"))
+cat(paste("F-statistic on", summary_wls$fstatistic[2], "and", summary_wls$fstatistic[3], "DF, p-value:", format.pval(pf(summary_wls$fstatistic[1], summary_wls$fstatistic[2], summary_wls$fstatistic[3], lower.tail = FALSE)), "\n"))
+cat(paste("AIC:", AIC(wls_model), "\n"))
+cat(paste("BIC:", BIC(wls_model), "\n"))
+```
+
+## Explicación de WLS y HC3
+
+En el contexto de tu modelo, se utilizan **Mínimos Cuadrados Ponderados (WLS)** y errores estándar robustos **HC3** para abordar el problema de la **heterocedasticidad**, que fue detectado previamente por la prueba de Breusch-Pagan (con un p-valor muy bajo, indicando varianza no constante de los errores).
+
+### WLS (Weighted Least Squares - Mínimos Cuadrados Ponderados)
+
+1.  **¿Qué es y qué hace?**
+    *   WLS es una variante de los Mínimos Cuadrados Ordinarios (OLS). Mientras que OLS asume que todos los errores tienen la misma varianza (homoscedasticidad), WLS permite que diferentes observaciones tengan diferentes varianzas.
+    *   WLS funciona asignando un **peso** a cada observación en el proceso de estimación. Las observaciones que se consideran más precisas (es decir, aquellas con menor varianza de error) reciben un peso mayor, y las observaciones menos precisas (con mayor varianza de error) reciben un peso menor.
+  *   El objetivo es minimizar la suma ponderada de los cuadrados de los residuos: $ \sum w_i (y_i - \hat{y}_i)^2 $.
+
+2.  **¿Por qué se usa?**
+    *   Se utiliza principalmente para corregir la **heterocedasticidad**. Cuando la varianza de los errores no es constante, los estimadores OLS siguen siendo insesgados, pero ya no son los más eficientes (no tienen la mínima varianza). WLS puede producir estimadores de coeficientes más eficientes (con menor varianza) que OLS en presencia de heteroscedasticidad, siempre que los pesos se especifiquen correctamente.
+
+3.  **¿Cuándo se usa?**
+    *   Cuando hay evidencia de heterocedasticidad y se tiene una idea de cómo varía la varianza de los errores con las observaciones. Los pesos ($w_i$) suelen ser inversamente proporcionales a la varianza del error de cada observación ($w_i \propto 1/\sigma_i^2$).
+    *   En este código, los pesos se calculan como `1 / pmax(fitted(ols_pre), 0.1)^2`. Esto implica una suposición de que la varianza del error es proporcional al cuadrado de los valores ajustados del modelo (una forma común de heterocedasticidad). Se usa `pmax` para evitar la división por cero o por valores muy pequeños.
+
+### HC3 (Errores Estándar Robustos a la Heteroscedasticidad - Tipo 3)
+
+1.  **¿Qué es y qué hace?**
+    *   HC3 se refiere a un tipo específico de **estimador de la matriz de covarianza robusto a la heterocedasticidad** (también conocidos como errores estándar de Eicker-Huber-White). "HC" significa "Heteroscedasticity-Consistent".
+    *   Los errores estándar robustos (como HC0, HC1, HC2, HC3) ajustan el cálculo de los errores estándar para que sean consistentes (es decir, correctos en muestras grandes) incluso si hay heteroscedasticidad. No cambian los coeficientes estimados ($\hat\beta$), solo sus errores estándar y, por lo tanto, las inferencias estadísticas.
+    *   **HC3** es una versión particular que aplica una corrección que tiende a ser más conservadora en muestras más pequeñas o cuando hay puntos de datos con alto apalancamiento (leverage).
+
+2.  **¿Por qué se usa?**
+    *   Para obtener inferencias estadísticas (pruebas t, p-valores, intervalos de confianza) válidas sobre los coeficientes del modelo cuando se sospecha o se ha detectado heteroscedasticidad.
+
+### ¿Por qué se usan en este modelo ?
+
+1.  **Detección de Heteroscedasticidad:** La prueba de Breusch-Pagan indicó una fuerte evidencia de heterocedasticidad en el modelo OLS inicial.
+2.  **Intento de Corrección con WLS:** Se ajusta un modelo WLS para intentar modelar explícitamente la heterocedasticidad y obtener estimadores de coeficientes más eficientes.
+3.  **Asegurar Inferencias Válidas con HC3:** Después de ajustar el modelo WLS, se calculan los errores estándar robustos HC3. Esto se hace porque la especificación de los pesos en WLS podría no ser perfecta, y HC3 proporciona una capa adicional de robustez para las inferencias.
+
+En resumen, estás utilizando WLS para intentar obtener mejores estimaciones de los coeficientes, y luego utilizando errores estándar HC3 para asegurar que tus conclusiones estadísticas sobre esos coeficientes sean fiables.
+
+
+
+```{r}
+# 4. Prueba de Breusch-Pagan en el modelo WLS
+bp_p_wls <- bptest(wls_model)
+cat("Breusch–Pagan p:", bp_p_wls$p.value)
+```
+
+```{r}
+# 5. VIF en el modelo WLS
+vif_wls <- vif(wls_model)
+print("VIF (primeras 10 variables):")
+print(head(vif_wls, 10))
+```
+
+
+## Modelo 2
+| Supuesto                   | Resultado                                          | Interpretación                                                                                |
+| -------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Linealidad (RESET)**     | p ≈ 1.4 × 10⁻⁸ (aún rechaza)                       | Queda curvatura menor; en práctica se tolera dada la elasticidad log/Box-Cox.                 |
+| **Homoscedasticidad (BP)** | p ≈ 7 × 10⁻²⁶⁵ → rechaza                           | Heteroscedasticidad estructural, pero usamos **pesos + HC3**, por lo que EE son consistentes. |
+| **Normalidad (JB)**        | p ≈ 0 → rechaza                                    | Con n ≫ 30 000, la ligera asimetría siempre se detecta; Box-Cox ya estiliza colas.            |
+| **Colinealidad (VIF)**     | VIF < 10 (log\_sqft y sqft2 altos pero aceptables) | Sin inestabilidad numérica severa.                                                            |
+| **Influencias (Cook D)**   | Máx ≈ 0.17 (> 4/n)                                 | Algunos puntos caros influyen; HC3 penaliza su impacto.                                       |
+| **Independencia (DW)**     | ≈ 1.98                                             | No hay autocorrelación.                                                                       |
+
+
+### Ejercicio (30 min)
+
+**Objetivo:** construir un *nuevo* modelo lineal que **mejore el AIC** del modelo actual.
+
+> *Nota*:
+>
+> * La normalidad de los residuos puede ignorarse (n ≫ 30).
+> * Si eliges **WLS** con errores robustos (HC3), la heteroscedasticidad deja de ser un problema práctico; los demás supuestos deben revisarse.
+
+
+#### Pasos sugeridos
+
+1. **Explora nuevas variables o transformaciones**
+
+   * Logs, cuadrados, interacciones, variables de ubicación, etc.
+   * Elimina predictores redundantes (VIF > 10) para evitar colinealidad severa.
+
+2. **Ajusta el modelo**
+
+   * Usa `lm(...)` o `lm(..., weights=...)` en R.
+   * Aplica `coeftest` con `vcovHC` para obtener errores robustos.
+
+3. **Diagnostica los supuestos clave**
+
+   * **Linealidad / especificación** → gráfico de residuos y `resettest` (p > 0.05 deseable).
+   * **Colinealidad** → `vif` (ideal < 10).
+   * **Autocorrelación** → `dwtest` ≈ 2.
+   * (**Heteroscedasticidad** solo si NO usas WLS) → `bptest`.
+
+4. **Compara AIC**
+
+   * Registra el `AIC(model)`.
+   * El nuevo modelo es aceptable si `AIC_new < AIC_prev` **y** no viola los supuestos revisados en 3.
+
+
+```{r}
+# Preparación de datos y pesos para el modelo final
+df <- df %>%
+  mutate(
+    log_price = log(price),
+    w = 1 / log_sqft^2,
+    zipcode = as.factor(zipcode) # Asegurarse de que zipcode sea un factor
+  )
+
+# ---------- 1. Fórmula lineal completa ----------
+formula_final_zip <- log_price ~ log_sqft + sqft2 + bedrooms + bathrooms + floors +
+                     waterfront + view + grade + grade2 + condition + renovated +
+                     log_lot + sqft_grade + age + age2 +
+                     lat + long + zipcode
+
+# ---------- 2. WLS con pesos fijos y errores robustos ----------
+wls_w_zip <- lm(formula_final_zip, data = df, weights = w)
+wls_w_zip_robust_summary <- coeftest(wls_w_zip, vcov = vcovHC(wls_w_zip, type = "HC3"))
+
+# Imprimir el resumen
+print(summary(wls_w_zip)) # Resumen estándar para R-cuadrado, etc.
+print(wls_w_zip_robust_summary) # Resumen con errores robustos para coeficientes
+
+# ---------- 3. Diagnósticos esenciales ----------
+
+# AJUSTE: Crear un modelo OLS solo para las pruebas que no soportan WLS
+ols_for_diag <- lm(formula_final_zip, data = df)
+
+reset_p <- resettest(wls_w_zip, power = 2, type = "fitted")$p.value
+bp_p    <- bptest(wls_w_zip)$p.value
+jb_p    <- jarque.bera.test(resid(wls_w_zip))$p.value
+# AJUSTE: Usar el modelo OLS para la prueba de Durbin-Watson
+dw      <- dwtest(ols_for_diag)$statistic
+
+cat(paste("\nRESET p-value        :", format(reset_p, scientific = TRUE, digits = 4)))
+cat(paste("\nBreusch–Pagan p-value:", bp_p))
+cat(paste("\nJarque–Bera p-value  :", jb_p))
+cat(paste("\nDurbin–Watson        :", round(dw, 3)))
+
+# ---------- 4. VIF numéricas ----------
+# El cálculo de VIF ya se hacía correctamente sobre un modelo OLS, así que no hay cambios aquí.
+vif_model_zip <- lm(log_price ~ log_sqft + sqft2 + bedrooms + bathrooms + floors +
+                     waterfront + view + grade + grade2 + condition + renovated +
+                     log_lot + sqft_grade + age + age2 + lat + long, 
+                   data = df)
+vif_values_zip <- vif(vif_model_zip)
+cat("\nMáx VIF numéricas:", max(vif_values_zip))
+```
+
+
+```{r}
+
+# La selección hacia adelante (Forward Selection) en R se puede hacer eficientemente
+# con la función step(). Compara modelos usando el Criterio de Información de Akaike (AIC).
+
+# Crear un modelo base (solo intercepto) para la selección de variables
+model_base <- lm(log_price ~ 1, data = df, weights = w)
+
+# Crear un modelo completo con todas las variables candidatas
+# zipcode se trata como un solo bloque
+candidatas_formula <- log_price ~ log_sqft + sqft2 + bedrooms + bathrooms + floors +
+                      waterfront + view + grade + grade2 + condition + renovated +
+                      log_lot + sqft_grade + age + age2 + lat + long + zipcode
+
+model_full <- lm(candidatas_formula, data = df, weights = w)
+
+# Ejecutar la selección hacia adelante
+# 'scope' define los modelos mínimo y máximo a considerar.
+# 'direction' especifica que es una selección hacia adelante.
+# 'trace = 1' muestra los pasos del proceso. En R Markdown, a veces la salida puede ser voluminosa,
+# por lo que podrías usar 'trace = 0' para no mostrar los pasos y solo ver el resultado final.
+modelo_final_stepwise <- step(model_base,
+                              scope = list(lower = model_base, upper = model_full),
+                              direction = "forward",
+                              trace = 1)
+
+# Mostrar el resumen del modelo final seleccionado por step()
+# con errores robustos para una inferencia más fiable
+print("Modelo final:")
+summary_stepwise <- summary(modelo_final_stepwise)
+print(summary_stepwise) # Resumen estándar
+
+# Coeficientes con errores robustos
+coeftest(modelo_final_stepwise, vcov. = vcovHC(modelo_final_stepwise, type = "HC3"))
+```
+
+
+
+# 📊 Selección de Variables: Forward, Backward y Stepwise
+
+La **selección de variables** es una técnica clave en la construcción de modelos estadísticos y de machine learning. Se utiliza para identificar el subconjunto más relevante de variables explicativas (predictoras) que expliquen la variable dependiente sin sobreajustar ni incluir ruido innecesario.
+
+
+## 🔁 1. Selección Forward (hacia adelante)
+
+### ➕ Empieza sin variables, y las va **añadiendo una por una**.
+
+### Pasos:
+
+1. Comienza con **ninguna variable** en el modelo (solo intercepto).
+2. Para cada variable candidata que no esté en el modelo:
+
+   * Ajusta un modelo incluyendo esa variable.
+   * Evalúa el modelo (usualmente con p-valor, AIC, BIC o R² ajustado).
+3. Añade la variable **que más mejora el modelo**, siempre que cumpla un criterio (por ejemplo, p-valor < 0.05).
+4. Repite el proceso hasta que **ninguna variable adicional cumpla el criterio**.
+
+### Pros:
+
+* Simple y computacionalmente eficiente.
+* Útil cuando hay muchas variables.
+
+### Contras:
+
+* No considera combinaciones entre variables que podrían funcionar bien juntas.
+
+
+
+## 🔁 2. Selección Backward (hacia atrás)
+
+### ➖ Empieza con **todas las variables** y las va **eliminando una a una**.
+
+### Pasos:
+
+1. Comienza con un modelo que incluye **todas las variables**.
+2. Ajusta el modelo y observa los **p-valores**.
+3. Elimina la variable con el **p-valor más alto** (por encima del umbral, como 0.05).
+4. Repite el proceso hasta que **todas las variables restantes sean significativas**.
+
+### Pros:
+
+* Evalúa el modelo completo desde el principio.
+* Puede encontrar interacciones que el método forward ignoraría.
+
+### Contras:
+
+* Requiere que el modelo inicial con todas las variables sea ajustable (puede haber multicolinealidad).
+* Computacionalmente más costoso.
+
+
+
+## 🔁 3. Selección Stepwise (combinada)
+
+### 🔄 Combina pasos hacia adelante y hacia atrás en cada iteración.
+
+### Pasos:
+
+1. Comienza con un modelo vacío o parcial.
+2. En cada iteración:
+
+   * **Añade** la mejor variable (como en forward).
+   * Luego, **elimina** cualquier variable que ya no sea significativa (como en backward).
+3. Repite el proceso hasta que **no se puedan añadir ni quitar más variables**.
+
+### Pros:
+
+* Más flexible que forward o backward por separado.
+* Se adapta dinámicamente a los cambios en el modelo.
+
+### Contras:
+
+* Más complejo.
+* Puede sobreajustar si no se regula correctamente.
+
+
+
+## 📌 Criterios comunes para decidir inclusión/exclusión
+
+* **p-valor** (significancia estadística, por ejemplo < 0.05).
+* **AIC / BIC** (criterios de información; menor es mejor).
+* **R² ajustado** (mayor es mejor, penaliza por complejidad).
+
+
+## 🧠 Ejemplo de uso en R (resumen):
+
+```{r, eval = FALSE}
+# Crear modelo base (solo intercepto) y modelo completo
+model_base <- lm(y ~ 1, data = df)
+model_full <- lm(y ~ x1 + x2 + x3 + ..., data = df)
+
+# Selección Forward (hacia adelante)
+step(model_base, scope = list(lower=model_base, upper=model_full), direction="forward")
+
+# Selección Backward (hacia atrás)
+step(model_full, direction="backward")
+
+# Selección Stepwise (ambas direcciones)
+step(model_base, scope = list(lower=model_base, upper=model_full), direction="both")
+```
+
+
+

@@ -1,0 +1,963 @@
+---
+title: "Regresion lineal múltiple"
+output: html_document
+date: "2025-07-22"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r packages, include=FALSE}
+
+# Cargar librerías necesarias
+library(tidyverse)
+library(ggplot2)
+library(stats)
+library(gridExtra) # Para organizar gráficos
+library(MASS)      # Para la transformación de Box-Cox
+
+# Establecer estilo de gráficos similar a seaborn's darkgrid
+theme_set(theme_bw())
+
+# Suprimir advertencias
+options(warn = -1)
+
+# Variable base para la URL
+url_base <- "https://raw.githubusercontent.com/jazaineam1/Diplomado_ucentral_ME/refs/heads/main/Datos/"
+```
+
+
+# ***Análisis de Datos y Big data***
+
+## ***Universidad Central***
+>## **Dirección de Educación Continua.**
+
+![Imágen1](https://www.ucentral.edu.co/sites/default/files/logo_1.png)
+
+
+
+# ***Linear Regression***
+
+
+
+# ***Regresión lineal múltiple.***
+
+En una regresión múltiple se tiene una variable objetivo (`Target`) $Y$ la cual es cuantitativa y es de interés para el investigador. Se quiere entonces construir una función $f(X)$ donde $X=(X_1, \ldots, X_p)$ es un conjunto de variables explicativas (`Features`) que se utilizaran para pronosticar y explicar las diferencias presentes en la variable target $Y$.
+
+En un modelo de regresión lineal, se usan las funciones del tipo:
+$$Y=\beta_0 +\beta_1X_1+\beta_2X_2+...+\beta_pX_p +\epsilon $$
+
+donde $\epsilon$ se conoce como el error o ruido del modelo.
+
+Sobre este error se realizan varios supuestos para que el modelo tenga validez estadística.
+1. ***Normalidad o gaussianidad:*** Campana de Gauss
+2. ***Homocedasticidad:*** La variabilidad de mi modelo no depende de las X
+3. ***Independencia.***
+
+
+# ***¿Cómo debemos fijar el precio de inmuebles en Seattle?***
+
+## ***Objetivos.***
+
+
+En una lectura anterior, aprendimos cómo la regresión lineal puede ser una herramienta poderosa para comprender el comportamiento de una variable de interés en relación con otras variables en nuestro conjunto de datos. Sin embargo, en muchas situaciones de la vida real, es posible que nuestros datos no cumplan con los supuestos básicos que se necesitan para que un modelo de regresión lineal sea adecuado. En los casos en que la regresión lineal no sea *directamente* aplicable, en estos escenarios debemos descubrir cómo solucionar este problema.
+
+Vamos a abordar:
+
+1. Cómo seleccionar y usar las transformaciones de variables apropiadas para corregir nuestros datos de modo que sean adecuados para aplicar la regresión lineal
+2. Cómo decidir si las variables independientes adicionales realmente benefician al modelo
+3. Cómo ampliar aún más la aplicabilidad de los modelos lineales teniendo en cuenta las interacciones que pueden existir entre las variables independientes
+
+### ***Introducción***
+
+El Dataset se obtuvo de [`Kaggle`](https://www.kaggle.com/harlfoxem/housesalesprediction) e incluye precios de venta de casas en el estado de Washington (condado de King, donde se encuentra Seattle) entre mayo de 2014 y mayo de 2015.
+
+Vamos a crear un modelo que use como variable target el precio de venta (`price`) y  como las features las características de los predios. Todo basado en ventas anteriores en Seattle para recomendar un precio de venta óptimo.
+
+```{r load_data}
+# Cargar los datos desde la URL
+file_url <- paste0(url_base, "kc_house_data.csv") # kaggle
+houses <- read_csv(file_url)
+
+# Mostrar las primeras filas del dataframe
+head(houses)
+```
+
+## ***Exploración de datos***
+
+
+Comencemos por revisar las columnas del conjunto de datos y lo que significan:
+
+1. **id**: Identificación para la casa.
+2. **date**: Fecha de venta de la casa.
+3. **price**: Precio al que se vendió la casa.
+4. **bedrooms**: Número de habitaciones.
+5. **bathrooms**: Número de baños.
+6. **sqft_living**: Pies cuadrados de la casa.
+7. **sqft_lot**: Pies cuadrados del lote.
+8. **floors**: Total de pisos (niveles) en casa.
+9. **waterfront**: Si la casa tiene o no una vista de un al mar.
+10. **view**: Un índice de 0 a 4 de qué tan buena es la vista desde la propiedad
+11. **condition**: Condición de la casa (que tan buena está).
+12. **grade**: Calificación general otorgada a la unidad de vivienda, basada en el sistema de calificación del condado de King.
+13. **sqft_above**: Pies cuadrados de la casa en la parte del sótano.
+14. **sqft_basement**: Pies cuadrados del sótano.
+15. **yr_built**: Año en que se construyó la casa
+16. **yr_renovated**: Año en que fué renovada la casa.
+17. **zipcode**: Código postal de la casa
+18. **lat**: Coordenada de latidad del predio.
+19. **long**: Coordenada de longitud del predio.
+20. **sqft_living15:** Área de la sala de estar en 2015 (implica: algunas renovaciones) Esto podría o no haber afectado el área del tamaño del lote.
+21. **sqft_lot15:** Pies cuadrado del lote (implica algunas revonaciones)
+
+```{r data_preparation}
+# Vamos a formar nuestro Dataset de trabajo
+df <- houses
+
+# Eliminar columnas no deseadas
+df <- df %>%
+  dplyr::select(-id, -sqft_living15, -sqft_lot15)
+
+# Mostrar la estructura del dataframe (similar a .info())
+glimpse(df)
+```
+
+### ***Ejercicio 1.***
+
+Esta es la distribución de los precios de la vivienda caracterizada por sus estadísticas descriptivas y un histograma:
+
+```{r price_distribution_summary}
+# Resumen estadístico de la variable 'price'
+summary(df$price)
+```
+
+```{r price_distribution_plot, fig.height=4, fig.width=15}
+# Histograma de los precios
+ggplot(df, aes(x = price)) +
+  geom_histogram(aes(y = ..density..), bins = 50, fill = "lightblue", color = "black") +
+  geom_density(color = "blue", size = 1) +
+  labs(title = "Histograma de los precios.")
+```
+
+Basándose únicamente en estos resultados, ¿diría que la distribución de precios es normal?
+
+***Respuesta.***
+
+
+
+Del histograma podemos ver que la distribución está bastante sesgada hacia la derecha. Esto se corrobora con el hecho de que la diferencia entre el percentil 25 y el percentil 50 es notablemente menor que la diferencia entre el percentil 50 y el percentil 75. Por lo tanto, es casi seguro que la distribución de precios no es normal.
+
+
+Una forma de evaluar si los datos provienen de una distribución dada en particular es dibujar un [**Gráfico de cuantil cuantil(QQ-plot)**](https://www.youtube.com/watch?v=okjYjClSjOg&ab_channel=StatQuestwithJoshStarmer) . En un gráfico QQ, los cuantiles de los datos se representan frente a los cuantiles de la distribución deseada. Si la gráfica resultante se desvía lo suficiente de la línea de identidad (es decir, la línea $y = x$), podemos decir que nuestros datos no provienen de esa distribución en particular.
+
+Para entender mejor cómo interpretar gráficos QQ, consideremos una variable normalmente distribuida y encontremos sus percentiles (100 cuantiles):
+
+```{r normal_dist_percentiles, fig.height=4, fig.width=15}
+# N(145,19²) encontramos 99 percentiles (0.01-0.99)
+set.seed(1880)
+theor_data <- rnorm(10000, mean = 145, sd = 19)
+percentil_theo <- quantile(theor_data, probs = seq(0.01, 0.99, 0.01))
+
+# Gráfico de densidad con percentiles
+ggplot(data.frame(x = theor_data), aes(x = x)) +
+  geom_density(fill = "lightblue") +
+  geom_vline(xintercept = percentil_theo, color = "orange") +
+  labs(title = "Una distribucion normal y sus percentiles")
+```
+
+Tomemos ahora una muestra de la misma variable. Esta muestra consta de 99 observaciones y, por lo tanto, cada observación cuenta como un percentil (es decir, después de ordenarlas, la $i$-ésima observación será exactamente el $i$-el percentil).
+
+```{r sample_percentiles, fig.height=4, fig.width=15}
+set.seed(1880)
+percentil_sample <- sort(rnorm(99, mean = 145, sd = 19))
+
+# Gráfico de los percentiles de la muestra
+ggplot(data.frame(x = percentil_sample)) +
+  geom_vline(aes(xintercept = x), color = "orange") +
+  labs(title = "Percentiles distribucion normal N(145,19²)") +
+  ylim(0, 0.020)
+```
+
+Si graficamos los percentiles de la distribución normal contra los percentiles de la muestra como un diagrama de dispersión, obtenemos lo siguiente:
+
+```{r qq_scatter_demo1, fig.height=4, fig.width=4}
+# Gráfico QQ del original frente a la muestra
+plot_data <- data.frame(theo = percentil_theo, sample = percentil_sample)
+
+ggplot(plot_data, aes(x = theo, y = sample)) +
+  geom_point(size = 1) +
+  labs(x = "Percentiles distribución original",
+       y = "Percentiles de las 99 observaciones de la muestra",
+       title = "Scatterplot cuantil vs. cuantil\nDistribución original y la muestra")
+```
+
+Se observa que los puntos siguen aproximadamente una línea recta desde la esquina inferior izquierda hasta la esquina superior derecha (es decir, aproximadamente la línea $y = x$). Esto tiene sentido: dado que las formas de las distribuciones son similares, sus percentiles (que resumen esas formas) también deberían ser similares.
+
+Ahora comparemos nuestra distribución original con *otra* distribución que también es normal pero que tiene una media y una desviación estándar muy diferentes (observe el cambio en el eje $y$):
+
+```{r qq_scatter_demo2, fig.height=4, fig.width=4}
+set.seed(1000)
+sample_data_other <- quantile(rnorm(100, mean = 1485, sd = 190), probs = seq(0.01, 0.99, 0.01))
+plot_data_other <- data.frame(theo = percentil_theo, sample = sample_data_other)
+
+ggplot(plot_data_other, aes(x = theo, y = sample)) +
+  geom_point(size = 0.7) +
+  labs(x = "Percentiles distribución original",
+       y = "Percentiles N(1485,190²)",
+       title = "Scatterplot cuantil vs.cuantil\nDistribución original y otra normal")
+```
+
+La relación lineal entre los percentiles se mantiene. En general, si dibuja una gráfica QQ de dos variables normales, los puntos tenderán a formar una línea recta incluso si las dos distribuciones tienen medias y desviaciones estándar diferentes.
+
+### ***Pregunta 1.***
+
+Este es el gráfico QQ para `price` frente a la distribución normal estandar. ¿Qué puedes concluir?
+
+```{r qq_plot_price, fig.height=4, fig.width=15, out.width="50%"}
+# QQ plot de price
+qqnorm(df$price, main = "QQ Plot para los precios.", xlab = "Cuantiles teóricos", ylab = "Valores ordenados")
+qqline(df$price, col = "red", lwd = 2)
+```
+
+Al parecer la distribución de `price` no es normal... Problema!!!! Se necesita en el modelo de regresión múltiple que la variable respuesta se distribuya normal-- :(
+
+### ***Ejercicio 2.***
+
+Examine la relación entre los precios de la vivienda y el precio por pie cuadrado de espacio habitable (gráfico a continuación). ¿Qué puede concluir?
+
+```{r lm_price_vs_sqft, fig.height=5, fig.width=10.5}
+# Relación lineal entre sqft_living y price
+ggplot(df, aes(x = sqft_living, y = price)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Price vs. Sqft_living")
+```
+
+***Respuesta.***
+
+
+
+Dada la forma en que el precio de la vivienda frente al precio por pie cuadrado parece "abanicarse", vemos que la relación no parece ser lineal. De hecho, no es inmediatamente obvio qué tipo de relación se exhibe aquí.
+
+
+LA prueba de normalidad establece como hipótesis:
+
+$$H_0: \text{Normal}$$
+
+$$H_a: \text{No Normal}$$
+
+```{r model0_summary}
+formula0 <- price ~ sqft_living
+model0 <- lm(formula = formula0, data = df)
+summary(model0)
+```
+
+### ***Transformación de variables.***
+
+Vimos en el Ejercicio 1 que la distribución de los precios de la vivienda no es normal, y que esto puede estar contribuyendo al efecto de "abanico" que observamos en el Ejercicio 2. Queremos encontrar una manera de eliminar el efecto de "abanico", ya que implica que un ajuste lineal se vuelve cada vez menos adecuado para valores más grandes de `sqft_living`. Un método común para abordar este problema es transformar la variable dependiente y/o la variable independiente. Tal **transformación de variable** implica aplicar una función a una o más de estas variables para lograr condiciones que sean adecuadas para la aplicación de un modelo lineal.
+
+Las funciones matemáticas típicas utilizadas para transformar variables incluyen potencias (cuadráticas, cúbicas, raíces cuadradas, etc.), logaritmos y funciones trigonométricas. Comencemos con la transformación logarítmica en busca de lograr "linealizar" la relación.
+
+
+### ***Ejercicio 3.***
+
+Tomamos el logaritmo de `price` y al crear las siguientes gráficas y tablas. Determinar si esto hizo que la distribución de la variable transformada fuera más o menos normal.
+
+```{r log_price_distribution, fig.height=4, fig.width=15}
+# Gráficos para log(price)
+p1 <- ggplot(df, aes(x = log(price))) +
+  geom_histogram(aes(y = ..density..), bins = 50, fill = "lightblue", color = "black") +
+  geom_density(color = "blue") +
+  labs(title = "Histograma de Log prices", y = "")
+
+# Para el QQ-plot en R, creamos el gráfico dentro del chunk
+# No se puede asignar a una variable como en Python
+qq_plot_data <- data.frame(y = sort(log(df$price)))
+p2 <- ggplot(qq_plot_data, aes(sample = y)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "QQ-plot", x = "Cuantiles teóricos", y = "Valores ordenados")
+
+# Mostrar los gráficos uno al lado del otro
+grid.arrange(p1, p2, ncol = 2)
+```
+
+```{r log_price_summary}
+summary(log(df$price))
+```
+
+***Respuesta.***
+
+
+
+Podemos ver en el gráfico QQ, el histograma y la tabla que la distribución está mucho más cerca de una distribución normal.
+
+
+
+### ***Construcción de un modelo lineal con variables transformadas.***
+
+No estamos restringidos a solo aplicar la transformación logarítmica a la variable `price`, podemos hacerlo a cualquier otra variable en nuestro conjunto de datos. Transformemos tanto `price` como `sqft_living` con este método y ajustemos el siguiente modelo lineal:
+
+$$
+\log(price) = \beta_0 + \beta_1 \log(sqft{\_}living) + \varepsilon
+$$
+
+A continuación se muestra el diagrama y la tabla de salida correspondientes (en esta y en todas las tablas de salida posteriores, cada vez que una variable es una transformación logarítmica, tiene el prefijo `np.log` y aparece entre paréntesis):
+
+```{r lm_log_log_plot, fig.height=5, fig.width=10.5}
+# Crear un nuevo data frame con las variables transformadas
+houses_1 <- df %>%
+  mutate(log_price = log(price),
+         sqft_living_log = log(sqft_living))
+
+# Relación lineal entre log(sqft_living) y log(price)
+ggplot(houses_1, aes(x = sqft_living_log, y = log_price)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Sqft_living vs. Precio (log-log)",
+       x = "log(sqft_living)",
+       y = "log(price)")
+```
+
+```{r lm_log_log_summary}
+formula1 <- log(price) ~ log(sqft_living)
+log_log_model <- lm(formula = formula1, data = df)
+summary(log_log_model)
+```
+
+Tenemos que ser conscientes de cómo interpretamos los coeficientes aquí. En una regresión en la que tanto la variable independiente como la dependiente son transformaciones logarítmicas (una *log-log regression*), el coeficiente $\beta_1$ debe interpretarse como el *cambio porcentual* en la variable dependiente asociada con el 1\% de cambio en la variable independiente. Esta comparación de cambio de porcentaje frente a porcentaje se conoce como **elasticidad**. Así, en nuestro modelo:
+
+
+
+***Un aumento del 1\% en la superficie habitable se asocia con un aumento del 0,8368\% en el precio.***
+
+
+
+
+
+
+Ahora construyamos un modelo lineal donde la transformación logarítmica solo se aplica a los precios de la vivienda, es decir, un modelo de la forma:
+
+$$
+\log(price) = \beta_0 + \beta_1 sqft{\_}living + \varepsilon
+$$
+
+El plot y la tabla de salida están a continuación:
+
+```{r lm_log_level_plot, fig.height=5, fig.width=10.5}
+# Relación lineal entre sqft_living y log(price)
+ggplot(houses_1, aes(x = sqft_living, y = log_price)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Log de Price vs. Sqft_living (log-level)",
+       y = "log(price)")
+```
+
+```{r lm_log_level_summary}
+formula2 <- log(price) ~ sqft_living
+log_level <- lm(formula = formula2, data = df)
+summary(log_level)
+```
+
+La interpretación del coeficiente de regresión vuelve a ser diferente. Esta es una *log-level regression*; es decir, uno en el que la variable dependiente se ha transformado logarítmicamente y la variable independiente no. Interpretamos el coeficiente como una **semi-elasticidad**, donde un aumento absoluto en `sqft_living` (porque no se le ha aplicado la función logarítmica) corresponde a un aumento porcentual en `price`. Específicamente, aquí podemos decir que:
+
+
+
+***Un aumento en el espacio habitable de 1 pie cuadrado conduce a un aumento del 0,04 % en el precio.***
+
+
+
+### ***Ejercicio 4.***
+
+De las gráficas de los modelos log-log y log-level, ¿cuál de los dos es "más lineal"?
+
+***Respuesta.***
+
+
+
+Podemos ver en estos gráficos que los puntos de datos del modelo log-log se agrupan más uniformemente alrededor de la línea de mejor ajuste en diferentes niveles de la variable independiente en comparación con el otro modelo, lo que sugiere que el modelo log-log es más lineal.
+
+
+
+### ***La transformación Box-Cox.***
+
+Las transformaciones logarítmicas son solo una posible transformación para hacer que nuestras relaciones sean más lineales. Anteriormente, mencionamos potencias (por ejemplo, cuadrados, cubos, raíces cuadradas, etc.), así como funciones trigonométricas. En algunos casos, elegir una transformación puede ser sencillo (por ejemplo, el logaritmo porque es fácilmente interpretable); otras veces, es mucho más difícil. Una manera formal de decidir qué transformación es usar  la transformación de [**Box-Cox**](https://www.isixsigma.com/tools-templates/normality/making-data-normal-using-box-cox-power-transformation/) criterio. Esta es una ingeniosa función matemática que genera un número cuando lo aplicas a una variable. Este número suele representarse con la letra griega $\lambda$ (lambda). La interpretación de algunos valores comunes de $\lambda$ se muestra a continuación:
+
+
+
+| Si se obtiene un valor lambda ($λ$) de... 	| entonces transformamos $Y$ usando esta función|
+|:-:	|:-:	|
+| -3 	| $Y^{-3} = \frac{1}{Y^3}$ 	|
+| -2 	| $Y^{-2} = \frac{1}{Y^2}$	|
+| -1 	| $Y^{-1} = \frac{1}{Y^1}$ 	|
+| -0.5 	| $Y^{-0.5} = \frac{1}{Y^{0.5}} = \frac{1}{\sqrt{Y}}$ 	|
+| 0 	| $log(Y)$ 	|
+| 0.5 	| $Y^{0.5} = \sqrt{Y}$ 	|
+| 1 	| $Y^1 = Y$ 	|
+| 2 	| $Y^2$ 	|
+| 3 	| $Y^3$ 	|
+
+
+Por ejemplo, si tiene una variable $Y$ y obtuvo $\lambda=2$ después de aplicar la función Box-Cox, entonces $Y^2$ debería tener una distribución aproximadamente normal. Como caso especial, cuando $\lambda=0$ no transformamos usando $Y^0$ (que le daría el número constante 1), sino usando $\log(Y)$.
+
+```{r boxcox_demo1, fig.height=6, fig.width=18}
+# Generar una distribución normal
+set.seed(42) # para reproducibilidad
+normal_data <- rnorm(1000, mean = 10, sd = 2)
+
+# La transformación de raíz cúbica
+cbrt_transformed_data <- normal_data^(1/3)
+
+# Aplicar la transformación de Box-Cox
+# Nota: Box-Cox en R funciona sobre un modelo lineal, por lo que usamos ~ 1 para modelar solo la intercepción.
+# La función de Python es un poco diferente, pero el concepto es el mismo.
+# Para evitar errores con valores negativos/cero en los datos de demostración, los manejaremos
+cbrt_transformed_data_pos <- cbrt_transformed_data[cbrt_transformed_data > 0]
+bc_result <- boxcox(cbrt_transformed_data_pos ~ 1, plotit = FALSE)
+lambda_value <- bc_result$x[which.max(bc_result$y)]
+boxcox_transformed_data <- (cbrt_transformed_data_pos^lambda_value - 1) / lambda_value
+
+# Preparar datos para graficar
+p1 <- ggplot(data.frame(x = normal_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = "Distribución Normal Original")
+p2 <- ggplot(data.frame(x = cbrt_transformed_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = "Distribución Transformada por Raíz Cúbica")
+p3 <- ggplot(data.frame(x = boxcox_transformed_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = paste0("Distribución Transformada por Box-Cox (λ = ", round(lambda_value, 2), ")"))
+
+grid.arrange(p1, p2, p3, ncol = 3)
+cat(paste("El valor de lambda calculado por Box-Cox es:", round(lambda_value, 3)))
+```
+
+
+```{r boxcox_demo2, fig.height=6, fig.width=18}
+# Generar datos log-normales
+set.seed(42)
+normal_data <- rnorm(1000, mean = 5, sd = 1)
+exp_transformed_data <- exp(normal_data)
+
+# Aplicar la transformación de Box-Cox
+bc_exp_result <- boxcox(exp_transformed_data ~ 1, plotit = FALSE)
+lambda_exp_value <- bc_exp_result$x[which.max(bc_exp_result$y)]
+boxcox_output_data <- (exp_transformed_data^lambda_exp_value - 1) / lambda_exp_value
+
+# Preparar gráficos
+p1_exp <- ggplot(data.frame(x = normal_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = "Distribución Normal Original")
+p2_exp <- ggplot(data.frame(x = exp_transformed_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = "Distribución Transformada Exponencialmente (Log-Normal)")
+p3_exp <- ggplot(data.frame(x = boxcox_output_data), aes(x)) + geom_histogram(kde = TRUE) + labs(title = paste0("Distribución Transformada por Box-Cox (λ = ", round(lambda_exp_value, 2), ")"))
+
+grid.arrange(p1_exp, p2_exp, p3_exp, ncol = 3)
+cat(paste("El valor de lambda calculado por Box-Cox es:", round(lambda_exp_value, 3), "\n"))
+cat("Un valor de lambda cercano a 0 sugiere una transformación logarítmica.")
+```
+
+En `R` procedemos así:
+```{r boxcox_on_price_plot, fig.height=4, fig.width=8}
+# La función boxcox() de la librería MASS es útil porque también genera un gráfico
+# del perfil de verosimilitud para lambda.
+bc_price_result <- boxcox(df$price ~ 1, plotit = TRUE)
+```
+
+```{r boxcox_on_price_lambda}
+# Extraer el valor óptimo de lambda
+lambda_price <- bc_price_result$x[which.max(bc_price_result$y)]
+
+# Realizar la transformación con el lambda encontrado
+transformed_price <- (df$price^lambda_price - 1) / lambda_price
+```
+
+Esta es la serie transformada por Box-Cox:
+```{r show_transformed_price}
+head(transformed_price)
+```
+
+```{r hist_transformed_price, fig.height=6, fig.width=15}
+# Histograma de los valores transformados por Box-Cox
+ggplot(data.frame(x = transformed_price), aes(x = x)) +
+  geom_histogram(bins = 50, fill = "lightblue", color = "black") +
+  labs(title = "Histograma de precios transformados por Box-Cox")
+```
+
+Y este es el $\lambda$:
+```{r print_lambda_price}
+print(paste("El valor de lambda en Box-Cox es: ", round(lambda_price, 3)))
+```
+
+Tenemos que BC es $\lambda=-0.23$, por lo que parece sensato usar la transformación logarítmica ya que el valor de Box-Cox es cercano a cero. Aunque es muy útil, el criterio de Box-Cox no es perfecto, por lo que siempre debe verificar el QQ-plot después de transformar la variable para confirmar que parece tener una distribución normal.
+
+```{r qq_plot_log_resid, fig.height=4, fig.width=15}
+# Re-evaluamos el modelo log-level y graficamos los residuos
+# En el cuaderno original, este chunk parece graficar log(price) de nuevo, no residuos.
+# Replicaremos eso para ser fieles al original.
+p1_log <- ggplot(df, aes(x = log(price))) +
+  geom_histogram(aes(y = ..density..), bins = 50, fill = "lightblue", color = "black") +
+  geom_density(color = "blue") +
+  labs(title = "Histograma de Log prices", y = "")
+
+qq_plot_data_log <- data.frame(y = sort(log(df$price)))
+p2_log <- ggplot(qq_plot_data_log, aes(sample = y)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "QQ-plot", x = "Cuantiles teóricos", y = "Valores ordenados")
+
+grid.arrange(p1_log, p2_log, ncol = 2)
+```
+
+### ***Regresión lineal múltiple con variables transformadas.***
+
+Por supuesto, no tiene sentido limitarnos a modelar los precios de la vivienda usando solo una variable independiente. Agreguemos varias variables más, algunas transformadas y otras no.
+
+### ***Ejercicio 5.***
+
+A continuación se muestra la tabla de salida del siguiente modelo:
+
+$$
+\log(price) = \beta_0 + \beta_1 \log(sqft{\_}living) + \beta_2 \log(sqft{\_}lot) + \beta_3 bedrooms + \beta_4 floors + \beta_5 bathrooms + \beta_6 waterfront + \beta_7 condition + \beta_8 view + \beta_9 grade + \beta_{10} yr{\\_}built + \beta_{11} lat + \beta_{12} long + \varepsilon
+$$
+
+Proporcionar interpretaciones para el coeficiente de log `sqft_living`, y `waterfront`.
+
+**Nota:** Las variables de este modelo que son categóricas aparecen en la tabla entre paréntesis y después de una letra `C` que significa "categórica". Esta sintaxis proviene de la libreria de software que usamos para ajustar el modelo.
+
+```{r factorize_waterfront}
+# Convertir 'waterfront' a un factor para tratarla como categórica en el modelo
+df$waterfront <- as.factor(df$waterfront)
+```
+
+```{r value_counts_waterfront}
+table(df$waterfront)
+```
+
+```{r info_after_factor}
+glimpse(df)
+```
+
+```{r model_prueba}
+# Modelo intermedio para demostrar la sintaxis de variables categóricas
+prueba <- lm(log(price) ~ log(sqft_living) + waterfront, data = df)
+summary(prueba)
+```
+
+```{r describe_df}
+# Resumen de las variables numéricas para referencia
+summary(df %>% select_if(is.numeric))
+```
+
+```{r model3_summary}
+# Asegurarse de que 'view' sea tratada como categórica
+df$view <- as.factor(df$view)
+
+formula3 <- as.formula("log(price) ~ log(sqft_living) + log(sqft_lot) + bedrooms + floors + bathrooms +
+                         waterfront + condition + view + grade + yr_built + lat + long")
+
+model3 <- lm(formula = formula3, data = df)
+summary(model3)
+``` 
+
+
+
+***Respuesta.***
+
+
+
+Todas las variables son estadísticamente significativas (todos los valores *p* menores a 0.05). En general, este modelo lineal explica más del 76 por ciento de la variabilidad total de la variable dependiente.
+
+Un aumento del 1% en el espacio habitable conduce a un aumento del 0,4067% en el precio. Una propiedad con vista al agua generalmente tiene un precio de 39.95% más que una sin tal vista.
+
+Note que nuestro modelo establece que por cada dormitorio adicional, el precio de una casa *disminuye* 2,5%. Esto parece una tontería: revisaremos por qué esto probablemente sucedió más adelante.
+
+
+
+¿Qué otros factores que omitimos podrían afectar el precio? Los ejemplos pueden incluir la proximidad a los servicios (hospitales, escuelas, áreas comerciales, cines, paradas de metro, etc.) y las tasas de criminalidad. Nuestro conjunto de datos no tiene una lista completa de posibles factores; sin embargo, tenemos algunas variables que sería interesante investigar más a fondo.
+
+En general, los precios de la vivienda cambian según la ubicación. Dos casas con características comparables pueden tener un precio muy diferente según el vecindario y la posición geográfica. En este conjunto de datos, tenemos código postal y coordenadas geográficas. Empecemos echando un vistazo a la relación entre latitud y precios.
+
+
+
+### ***Ejercicio 6.***
+
+En el siguiente gráfico, podemos ver la relación entre la latitud y el logaritmo de los precios de la vivienda. ¿Qué observas? ¿Qué función de transformación podría ser apropiada aquí?
+
+```{r lat-vs-log_price-plot, fig.width=15, fig.height=6}
+# Se asume que el dataframe 'df' ya está cargado
+# y contiene las columnas 'lat' y 'price'.
+
+ggplot(df, aes(x = lat, y = log(price))) +
+  geom_point(color = "blue", alpha = 0.5, size = 2) +
+  labs(
+    title = "lat vs. Log_Price",
+    x = "Latitud",
+    y = "Log_Precio"
+  ) +
+  theme_minimal()
+```
+
+***Respuesta.***
+
+
+Podemos ver que existe una relación no lineal entre la latitud y el precio. Basado en la curvatura cóncava en la mitad derecha de la gráfica anterior, parece que agregar un término cuadrático podría ayudarnos a explicar esto.
+
+
+
+Agreguemos el cuadrado de la latitud como una variable independiente adicional al modelo del Ejercicio 5:
+
+```{r ols-model-lat-squared}
+# Esta es la fórmula inferida del modelo del Ejercicio 5 (modelo3)
+# a partir de la salida del modelo4 en el cuaderno original.
+formula3 <- "log(price) ~ factor(waterfront) + factor(view) + log(sqft_living) + 
+             log(sqft_lot) + bedrooms + floors + bathrooms + condition + grade + 
+             yr_built + lat + long"
+
+# Se agrega el término cuadrático para latitud
+formula4 <- as.formula(paste(formula3, "+ I(lat^2)"))
+
+# Ajuste del modelo de regresión lineal
+model4 <- lm(formula4, data = df)
+
+# Muestra del resumen del modelo
+summary(model4)
+```
+
+### ***Pregunta 2.***
+
+¿Es significativo el coeficiente de esta nueva variable independiente? ¿Qué puedes decir sobre el $R^2$ de este modelo? (el coeficiente relevante en la tabla de salida es el de la variable `I(lat^2)`; esto proviene de la sintaxis de la libreria que usamos para ejecutar la regresión).
+
+
+
+### ***Ejercicio 7.***
+
+#### ***7.1***
+
+Una de las propiedades de $R^2$ es que nunca puede disminuir cuando aumenta el conjunto de predictores. En otras palabras, no hay penalización por continuar agregando variables al modelo. ¿Por qué crees que esto puede ser un inconveniente de $R^2$? ¿Cómo haría para decidir el conjunto correcto de predictores a utilizar?
+
+***Respuesta.***
+
+
+
+Dado que no hay penalización por continuar agregando variables, podemos terminar usando variables que tienen poco poder explicativo. En consecuencia, seleccionar variables independientes con el único propósito de maximizar $R^2$ puede llevar a elegir modelos innecesariamente complejos y redundantes. Esto puede llevarnos a un **overfitting**; es decir, adaptar el modelo tanto a los datos particulares que tenemos a expensas de generalizar bien a otros datos que no tenemos.
+Una forma de evitar el sobreajuste es implementar una medida que imponga una penalización por cada variable independiente agregada. Esta es $R²_{adj}$, pues penaliza el ingreso de nuevos parámetros, él solo aumentará si se reduce la varianza estimada del modelo.
+
+
+
+#### ***7.2***
+
+Existen varios criterios de selección de modelos que cuantifican la calidad de un modelo mediante la gestión del equilibrio entre la bondad de ajuste y la simplicidad. El más común es el **AIC (Criterio de información de Akaike)**. El AIC penaliza la adición de más términos a un modelo, por lo que para que un modelo actualizado tenga un mejor AIC, su $R^2$ debe mejorar al menos tanto como la penalización adicional impuesta. Dados varios modelos, el que tiene **el AIC más bajo es el recomendado.**
+
+Por ahora, no se preocupe por los detalles técnicos detrás de AIC (puede leer más sobre esto [aquí](https://en.wikipedia.org/wiki/Akaike_information_criterion)).
+
+Utilice la puntuación AIC (puede buscarla en la tabla de salida del resumen del modelo) para evaluar si el modelo con el término cuadrado agregado es mejor o no que el modelo sin él.
+
+
+
+## ¿Qué es el AIC?
+
+El AIC mide **la calidad relativa de un modelo estadístico**, penalizando tanto el error de predicción como la complejidad del modelo. Fue desarrollado por el estadístico japonés Hirotugu Akaike.
+
+> **Fórmula general del AIC:**
+>
+> $$
+> \text{AIC} = 2k - 2\ln(\hat{L})
+> $$
+>
+> Donde:
+>
+> * $k$: número de parámetros del modelo
+> * $\hat{L}$: valor máximo de la función de verosimilitud (likelihood) del modelo
+
+
+
+## Interpretación del AIC
+
+* **Cuanto menor sea el AIC, mejor**: Un valor más bajo indica un modelo más eficiente en términos de equilibrio entre ajuste y complejidad.
+* **No es una medida absoluta de calidad**, sino **relativa**: solo tiene sentido comparar valores de AIC entre modelos que se ajustan sobre el mismo conjunto de datos.
+* Penaliza modelos con muchos parámetros: evita el **sobreajuste** (*overfitting*).
+
+
+
+## Ejemplo de comparación
+
+Supongamos que ajustamos tres modelos sobre los mismos datos:
+
+| Modelo | AIC   |
+| ------ | ----- |
+| M1     | 120.5 |
+| M2     | 115.2 |
+| M3     | 119.8 |
+
+* El **Modelo 2 (M2)** es el preferido según el criterio AIC, porque tiene el menor valor.
+* Aunque M1 y M3 puedan tener mayor poder explicativo, su mayor número de parámetros los penaliza.
+
+
+
+## Consideraciones importantes
+
+* AIC **no dice si un modelo es bueno en términos absolutos**, solo cuál es mejor entre varios.
+* Se puede usar para seleccionar **número óptimo de variables** en regresiones o componentes en modelos ARIMA.
+* Si tienes pocos datos, puede ser mejor usar el **AICc** (versión corregida del AIC para muestras pequeñas).
+
+***Respuesta.***
+
+
+
+Comparando este modelo con el anterior podemos ver que el AIC ha mejorado de ~2597 a ~1086. Por lo tanto, es preferible el modelo con el término al cuadrado.
+
+
+
+### ***Modelado de efectos de interacción.***
+
+Los efectos de interacción pueden complicar el efecto percibido de las variables independientes sobre la variable dependiente. Profundicemos en las interacciones potenciales observando dos de los predictores en tándem: `waterfront` y posición geográfica (`lat` and `long`). Específicamente, ¿el efecto de la posición geográfica es diferente entre las casas que tienen vista frente al mar y las que no?
+
+
+
+### ***Ejercicio 8.***
+
+#### ***8.1***
+
+A continuación, dibujamos un gráfico de la relación entre `log_price` y `lat`. Este gráfico se ajusta a dos líneas de regresión separadas para las casas que tienen y no tienen una vista `waterfront`. ¿Que ves? ¿La relación es igual o diferente?
+
+```{r log_price-vs-lat-waterfront-plot, fig.height=6, fig.width=15}
+# Se asume el dataframe 'df' y la columna 'log_price'
+# El argumento 'hue' de seaborn.lmplot se traduce al estético 'color' en ggplot2.
+# Para asegurar que 'waterfront' se trate como una categoría, usamos factor().
+
+ggplot(df, aes(x = lat, y = log(price), color = factor(waterfront))) +
+  geom_point(size = 1.5, alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, fullrange = TRUE) + # se=FALSE para quitar el intervalo de confianza
+  labs(
+    title = "Log-price vs. Latitude",
+    x = "Latitude",
+    y = "log_price",
+    color = "Waterfront"
+  ) +
+  theme_minimal()
+```
+
+***Respuesta.***
+
+
+Vemos que los efectos de la posición geográfica son más pronunciados para el subgrupo de casas con vista al mar. En otras palabras, la línea tiene una pendiente más pronunciada y, por lo tanto, por cada grado de incremento en la latitud, el precio aumentará a una tasa más alta para las casas con vista al mar que para las casas sin ella.
+
+
+
+#### ***8.2***
+
+Esta es una gráfica que se ajusta a líneas de regresión separadas para casas con diferentes índices de `view` (es decir, qué tan buena era la vista de la propiedad). ¿Que ves? ¿La relación es igual o diferente?
+
+```{r log_price-vs-lat-view-plot, fig.height=8, fig.width=16}
+ggplot(df, aes(x = lat, y = log(price), color = factor(view))) +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, fullrange = TRUE) +
+  coord_cartesian(xlim = c(47.1, 47.8), ylim = c(11, 17)) +
+  labs(
+    title = "Log-price vs. Latitude",
+    x = "Latitude",
+    y = "log_price",
+    color = "View"
+  ) +
+  theme_minimal()
+```
+
+***Respuesta.***
+
+
+Vemos que las casas con mejores índices de vista tienden a tener precios más altos. Sin embargo, las pendientes de las diferentes líneas de regresión parecen casi iguales. Por lo tanto, un grado de incremento en `lat` aumenta el precio de una casa a (casi) la misma tasa, independientemente de cuán buena sea la `view` de la casa. Por lo tanto, concluimos que la vista de la casa probablemente *no* interactúa con la relación entre el precio y la latitud.
+
+
+
+Podemos verificar los hallazgos del Ejercicio 8 agregando **términos de interacción** a nuestro modelo lineal. Los sumamos incluyendo una multiplicación en el modelo. Por ejemplo, el siguiente modelo incluye un término de interacción entre `lat` y `waterfront`:
+
+$$
+\log(price) = \beta_0 + \beta_1 waterfront + \beta_2 lat + \beta_3 (lat \times waterfront) + \varepsilon
+$$
+
+Para entender por qué incluimos términos de interacción de esta manera, supongamos un modelo lineal (este ejemplo se tomó de [este enlace](https://stats.stackexchange.com/a/486147/86081)):
+
+$$
+y=\beta_0+\beta_1 x_1+\gamma x_2+e
+$$
+
+donde $\gamma$ depende linealmente de $x_1$:
+
+$$
+\gamma = \beta_2+\beta_3 x_1
+$$
+
+Esto significa que el efecto de $x_2$ que ves en $y$ no solo depende del valor de $x_2$ sino también del valor de $x_1$. Ambas variables están interactuando. Si sustituimos esta ecuación en la anterior, obtenemos nuestro término de interacción multiplicativa:
+
+$$\begin{align}
+y&=\beta_0+\beta_1 x_1 + (\beta_2+\beta_3 x_1)x_2+e\\
+&=\beta_0 + \beta_1 x_1 + \beta_2 x_2+\beta_3 x_1x_2+e
+\end{align}
+$$
+
+Esta es la tabla de salida que corresponde a este modelo:
+
+```{r ols-model-lat-waterfront-interaction}
+formula5 <- as.formula("log(price) ~ lat * factor(waterfront)")
+modelo5 <- lm(formula5, data = df)
+summary(modelo5)
+```
+
+La forma en que leemos el efecto de interacción dado por este resumen es la siguiente:
+    
+1. `factor(waterfront)1`: El modelo establece que se debe hacer un ajuste de -102.3040 al intercepto para una casa con vista al mar. Vimos antes que `waterfront` tuvo un impacto positivo en el precio de la casa, sin embargo, este modelo simple probablemente está dando más peso a otros factores. Este ajuste por sí solo no es directamente interpretable como un porcentaje sin considerar el término de interacción.
+
+2. `lat`: Por cada incremento de una unidad en la latitud, el logaritmo del precio de la casa debería aumentar en 1.7058 entre las casas que ***NO tienen frente (o vista) al mar*** (el grupo de referencia).
+
+3. `lat:factor(waterfront)1`: Por cada unidad de incremento en la latitud, el precio de la casa debería aumentar en $1.7058 + 2.1753 = 3.8811$ en el logaritmo del precio entre las casas que ***SÍ tienen frente al mar***. El efecto de la latitud es significativamente diferente (y más fuerte) para las casas con vista al mar.
+
+
+
+### ***Ejercicio 9.***
+
+Ahora, considere un modelo con un término de interacción entre `lat` y `view`. ¿Que ves? ¿Estos resultados concuerdan con sus hallazgos del Ejercicio 8.2?
+
+```{r ols-model-lat-view-interaction}
+formula6 <- as.formula("log(price) ~ lat * factor(view)")
+model6 <- lm(formula6, data = df)
+summary(model6)
+```
+
+***Respuesta.***
+
+
+
+La tabla de resumen muestra alguna interacción entre `lat` y `view`; sin embargo, la mayoría de estos *no* son estadísticamente significativos (los valores p para `lat:factor(view)1`, `lat:factor(view)2` y `lat:factor(view)3` son mayores que 0.05). Hay cierta interacción estadísticamente significativa cuando las casas tienen un índice de `view` de 4 (que también se puede ver mirando la pendiente de la línea morada en el ejercicio 8), pero es razonable decir que hay muy poca evidencia estadística de una interacción general entre las variables `lat` y `view`.
+
+
+
+### ***Incorporación de efectos de interacción en un modelo lineal.***
+
+Ajustemos un modelo de referencia que incluya todas las otras variables que hemos discutido antes. Además, incorporemos al modelo una variable `zipcode` y una nueva variable `renovated` indicando si la casa fue renovada anteriormente o no:
+
+$$
+\log(price) = \beta_0 + \beta_1 \log(sqft{\_}living)+ \beta_2 \log(sqft{\_}lot) + \beta_3 bedrooms + \beta_4 floors + \beta_5 bathrooms + \beta_6 waterfront + \beta_7 condition  + \beta_8 view + \beta_9 grade + \beta_{10} yr{\_}built + \beta_{11} lat + \beta_{12} (lat^2) + \beta_{13}long + \beta_{14}zipcode + \beta_{15}renovated + \varepsilon
+$$
+
+La tabla de salida es la siguiente:
+
+```{r ols-model-full-reference-1}
+# Creación de la nueva variable 'renovated'
+df <- df %>%
+  mutate(renovated = yr_renovated > 0)
+
+formula7 <- as.formula("log(price) ~ log(sqft_living) + log(sqft_lot) + bedrooms + 
+                       floors + bathrooms + factor(waterfront) + condition + 
+                       factor(view) + grade + yr_built + lat + I(lat^2) + 
+                       long + factor(zipcode) + factor(renovated)")
+
+model7 <- lm(formula7, data = df)
+summary(model7)
+```
+
+Podemos ver que tanto una vista frente al mar como las renovaciones tienen un impacto positivo en el precio. El efecto de una vista frente al mar es ~43.54 por ciento en los precios de viviendas comparables, mientras que el efecto de las renovaciones es ~5.72 por ciento.
+
+
+
+Hasta ahora, hemos analizado los efectos globales de las variables independientes, independientemente de los valores de las otras variables. Sin embargo, podríamos preguntarnos si el efecto de una vista frente al mar es diferente para las casas que se renovaron recientemente en comparación con las que no lo fueron. Para responder a esta pregunta, necesitamos agregar un término de interacción:
+
+$$
+\log(price) = \beta_0 + \dots + \beta_{15}renovated + \beta_{16} (waterfront \times renovated)+ \varepsilon
+$$
+
+```{r ols-model-full-reference-2}
+formula8 <- as.formula("log(price) ~ log(sqft_living) + log(sqft_lot) + bedrooms +
+                       floors + bathrooms + condition + factor(view) + grade + 
+                       yr_built + lat + I(lat^2) + long + factor(zipcode) + 
+                       factor(waterfront) * factor(renovated)")
+
+model8 <- lm(formula8, data = df)
+summary(model8)
+```
+
+Parece haber un pequeño efecto diferencial entre las propiedades con frente al mar que se renovaron frente a las que no se renovaron ($\beta_{16}=-0,0923$).
+
+
+
+### ***Modelo de referencia.***
+
+Consideremos el siguiente modelo de referencia.
+
+```{r ols-model-final-reference}
+# Modelo de referencia final con interacciones
+formula_ref <- as.formula("log(price) ~ log(sqft_living) * factor(renovated) + 
+                          log(sqft_lot) + bedrooms + floors + bathrooms + 
+                          condition + factor(view) + grade + yr_built + 
+                          lat * factor(waterfront) + I(lat^2) + long + 
+                          factor(zipcode)")
+
+model_ref <- lm(formula_ref, data = df)
+summary(model_ref)
+```
+
+```{r ref-model-metrics}
+cat(paste0("AIC: ", AIC(model_ref), "   R²_adj: ", summary(model_ref)$adj.r.squared))
+```
+
+### ***Ejercicio 10.***
+
+El AIC para el modelo de referencia fue de $-12045,34$ y el $R^2_{adj}$ fue de $0,8796$. Expandamos el modelo haciendo lo siguiente:
+
+1. Agregar un término que represente el cuadrado del año en que se construyó la casa.
+2. Agregar un término de interacción para la presencia de un sótano que afecta la relación entre la coordenada de longitud y el precio de una casa.
+
+A continuación se muestran las tablas de salida. Compare el ajuste y el AIC de estos modelos entre sí y con el modelo anterior. ¿Cuál es el mejor modelo?
+
+
+Aquí está la tabla para el modelo con $\beta_{17}(yr{\_}built^2)$  adicional:
+
+```{r ols-model-yr_built-squared}
+# Se añade el término cuadrático para yr_built
+formula9 <- update(formula_ref, . ~ . + I(yr_built^2))
+
+model9 <- lm(formula9, data = df)
+summary(model9)
+```
+
+Tabla con un $\beta_{17}$ adicional (has_basement×long) (sin el término de año al cuadrado):
+```{r ols-model-basement-interaction}
+# Se crea la variable has_basement
+df <- df %>%
+  mutate(has_basement = as.factor(ifelse(sqft_basement > 0, 1, 0)))
+
+# Se añade el término de interacción
+formula10 <- update(formula_ref, . ~ . + has_basement * long)
+
+model10 <- lm(formula10, data = df)
+summary(model10)
+```
+
+***Respuesta.***
+
+
+
+Los efectos son significativos en ambos casos. Ambos modelos mejoran el ajuste de nuestro modelo de referencia, pero la adición de un término cuadrático para el año de construcción conduce a un AIC más bajo y un R-cuadrado más alto ($R^2_{adj}=0.883, AIC=-12729.6$) en comparación con la interacción entre sótano y longitud ($R^2_{adj}=0.881, AIC=-12266.4$). Esto indica que el mejor modelo en comparación es el que tiene el término año al cuadrado agregado.
+
+```{r final-model-comparison}
+cat(paste0("Modelo de referencia: > AIC: ", AIC(model_ref), "\n"))
+cat(paste0("Modelo 9              > AIC: ", AIC(model9), "\n"))
+cat(paste0("Modelo 10             > AIC: ", AIC(model10), "\n"))
+```
+
+## ***Conclusiones.***
+
+En esta lectura, aplicamos varios tipos de transformaciones a las variables independientes y dependientes para mejorar la calidad de nuestro modelo lineal. En particular, encontramos que ajustar el logaritmo de los precios de la vivienda nos permitió obtener mejores resultados. Usando nuestra comprensión de las transformaciones, pudimos modelar efectivamente relaciones no lineales, como la relación cuadrática entre la latitud y el logaritmo del precio. Finalmente, integramos nuestra comprensión de los efectos de interacción de vistos en el EDA para modelar y cuantificar directamente las interacciones de la renovación y el waterfront en la relación entre los pies cuadrados y el precio.
+
+
+
+## ***Comentarios finales.***
+
+Las transformaciones de variables son una técnica poderosa para mejorar la calidad de nuestros modelos lineales. En particular:
+
+1. La transformación de la variable dependiente puede mejorar la linealidad y resolver el problema de la varianza **no constante** alrededor de la línea de mejor ajuste.
+2. La transformación de las variables independientes puede ser útil para mejorar la calidad del ajuste, capturar relaciones no lineales entre las variables independientes y dependientes y probar una gama más amplia de hipótesis.
+3. Dado que $R^2$ siempre aumenta con la adición de variables independientes, debemos tener cuidado de no **sobreajustar** nuestro modelo agregando variables que proporcionen poca información explicativa. Podemos usar indicadores como el `AIC Score` para ayudarnos a decidir si las variables agregadas benefician nuestro modelo.
+4. Los términos de interacción son un tipo específico de transformación variable que implica el producto de otras dos variables independientes. Pueden capturar la variabilidad en la relación entre una variable independiente y la variable dependiente en función del valor de una tercera variable.
+
+
+
+## ***Créditos.***
+
+"House Sales in King County, USA", August 25, 2016, harlfoxem, CC0 Public Domain, https://www.kaggle.com/harlfoxem/housesalesprediction
+```
